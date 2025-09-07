@@ -3291,13 +3291,27 @@
             const modal = document.getElementById('activityModal');
             const dateStr = modal.dataset.date;
             
-            if (!dateStr) return;
+            if (!dateStr) {
+                showMessage('❌ 날짜 정보를 찾을 수 없습니다.', 'error');
+                return;
+            }
             
             if (confirm('⚠️ 이 날짜의 모든 활동 기록을 삭제하시겠습니까?\n\n삭제된 데이터는 복구할 수 없습니다.')) {
                 try {
+                    console.log('활동 기록 삭제 시작:', dateStr);
+                    
                     // 해당 날짜의 활동 데이터 삭제
                     if (activities[dateStr]) {
                         delete activities[dateStr];
+                        console.log('로컬 activities에서 삭제 완료:', dateStr);
+                    }
+                    
+                    // 로컬 스토리지 업데이트
+                    const activitiesData = JSON.parse(localStorage.getItem('localActivities') || '{}');
+                    if (activitiesData[dateStr]) {
+                        delete activitiesData[dateStr];
+                        localStorage.setItem('localActivities', JSON.stringify(activitiesData));
+                        console.log('로컬 스토리지 업데이트 완료');
                     }
                     
                     // Firebase에서 삭제 (연결된 경우)
@@ -3307,19 +3321,9 @@
                                 console.log('Firebase에서 활동 기록 삭제 완료:', dateStr);
                             })
                             .catch(error => {
-                                console.error('Firebase 삭제 오류:', error);
+                                console.warn('Firebase 삭제 오류 (무시됨):', error);
                             });
                     }
-                    
-                    // 로컬 스토리지 업데이트
-                    localStorage.setItem('localActivities', JSON.stringify(activities));
-                    
-                    // 화면 업데이트
-                    renderCalendar();
-                    renderWeeklyDashboard();
-                    renderMonthlyReport();
-                    renderMemberList(); // 멤버 상태 업데이트
-                    renderAttendanceRanking(); // 랭킹 업데이트
                     
                     // 모달 내 체크박스 모두 해제
                     const checkboxes = modal.querySelectorAll('input[type="checkbox"]');
@@ -3327,14 +3331,29 @@
                         checkbox.checked = false;
                     });
                     
-                    // 참여율 업데이트
-                    updateAttendanceRates();
+                    // 화면 업데이트 (안전하게)
+                    setTimeout(() => {
+                        try {
+                            renderCalendar();
+                            renderWeeklyDashboard();
+                            renderMonthlyReport();
+                            renderMemberList();
+                            if (typeof renderAttendanceRanking === 'function') {
+                                renderAttendanceRanking();
+                            }
+                            if (typeof updateAttendanceRates === 'function') {
+                                updateAttendanceRates();
+                            }
+                        } catch (renderError) {
+                            console.warn('화면 업데이트 일부 오류:', renderError);
+                        }
+                    }, 100);
                     
                     showMessage(`🗑️ ${dateStr} 활동 기록이 삭제되었습니다.`, 'success');
                     
                 } catch (error) {
                     console.error('활동 기록 삭제 오류:', error);
-                    showMessage('❌ 삭제 중 오류가 발생했습니다.', 'error');
+                    showMessage('❌ 삭제 중 오류가 발생했습니다. 콘솔을 확인해주세요.', 'error');
                 }
             }
         }
