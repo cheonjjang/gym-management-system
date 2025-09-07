@@ -687,7 +687,7 @@
                                 <select id="rankingPeriod" class="input-field w-full px-3 py-2 rounded-lg text-xs font-medium focus:outline-none">
                                     <option value="week">📅 이번주</option>
                                     <option value="month">📅 이번달</option>
-                                    <option value="all">📅 전체기간</option>
+                                    <option value="all" selected>📅 전체기간</option>
                                 </select>
                             </div>
                             
@@ -2205,7 +2205,7 @@
         // 출석 랭킹 렌더링 (새로운 기능)
         function renderAttendanceRanking() {
             const rankingContainer = document.getElementById('attendanceRanking');
-            const period = document.getElementById('rankingPeriod')?.value || 'week';
+            const period = document.getElementById('rankingPeriod')?.value || 'all'; // 기본값을 'all'로 변경
             
             if (!rankingContainer) return;
             
@@ -2216,7 +2216,8 @@
             if (rankings.length === 0) {
                 rankingContainer.innerHTML = `
                     <div class="text-center py-4 text-primary-500 text-xs">
-                        📊 아직 활동 데이터가 없습니다
+                        📊 멤버 데이터가 없습니다<br>
+                        <span class="text-xs">멤버를 추가해주세요!</span>
                     </div>
                 `;
                 return;
@@ -2280,32 +2281,63 @@
 
         // 출석 랭킹 계산
         function calculateAttendanceRanking(period, rankingType = 'total') {
+            console.log('🔍 랭킹 계산 시작:', { period, rankingType, membersCount: members.length });
+            console.log('🔍 Activities 객체:', activities);
+            console.log('🔍 오늘 날짜:', new Date());
             const now = new Date();
             let startDate, endDate;
             
             switch (period) {
                 case 'week':
+                    // 9월 7일(일요일) 기준: 9월 1일(월) ~ 9월 7일(일)
                     startDate = new Date(now);
-                    startDate.setDate(now.getDate() - now.getDay());
-                    endDate = new Date(now);
+                    const day = startDate.getDay();
+                    
+                    if (day === 0) {
+                        // 일요일인 경우: 6일 전이 월요일
+                        startDate.setDate(now.getDate() - 6);
+                    } else {
+                        // 다른 요일인 경우: (요일-1)일 전이 월요일
+                        startDate.setDate(now.getDate() - (day - 1));
+                    }
+                    startDate.setHours(0, 0, 0, 0);
+                    
+                    endDate = new Date(startDate);
+                    endDate.setDate(startDate.getDate() + 6);
+                    endDate.setHours(23, 59, 59, 999);
                     break;
                 case 'month':
                     startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-                    endDate = new Date(now);
+                    startDate.setHours(0, 0, 0, 0);
+                    
+                    endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                    endDate.setHours(23, 59, 59, 999);
                     break;
                 case 'all':
                 default:
-                    startDate = new Date(2024, 0, 1); // 2024년 1월 1일부터
+                    startDate = new Date(2025, 0, 1); // 2025년 1월 1일부터
                     endDate = new Date(now);
                     break;
             }
             
-            const rankings = members
-                .filter(member => member.isActive !== false)
-                .map(member => {
+            console.log('📅 계산 기간:', {
+                period,
+                startDate: startDate.toISOString(),
+                endDate: endDate.toISOString(),
+                formatStartDate: formatDate(startDate),
+                formatEndDate: formatDate(endDate)
+            });
+            
+            const activeMembers = members.filter(member => member.isActive !== false && member.role !== 'super_admin');
+            console.log('🔍 활성 멤버 필터링:', { totalMembers: members.length, activeMembers: activeMembers.length });
+            
+            const rankings = activeMembers.map(member => {
+                    console.log(`🔍 멤버 ID 확인: ${member.id}, 이름: ${member.nickname || member.name}`);
                     const workoutCount = countMemberActivity(member.id, startDate, endDate, 'workout');
                     const meetingCount = countMemberActivity(member.id, startDate, endDate, 'meeting');
                     const totalActivities = workoutCount + meetingCount;
+                    
+                    console.log(`🔍 ${member.nickname || member.name}: 운동=${workoutCount}, 벙=${meetingCount}, 총=${totalActivities}`);
                     
                     // 기간별 최대 가능 활동 수 계산
                     const daysDiff = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
@@ -2317,6 +2349,7 @@
                                 Math.round((totalActivities / maxPossibleActivities) * 100) : 0;
                     
                     // 개별 활동 참여율 계산
+                    const possibleDays = Math.ceil(daysDiff / 2); // 가능한 활동일 수
                     const workoutRate = possibleDays > 0 ? Math.round((workoutCount / possibleDays) * 100) : 0;
                     const meetingRate = possibleDays > 0 ? Math.round((meetingCount / possibleDays) * 100) : 0;
                     
@@ -2352,10 +2385,10 @@
                         }
                         return b.rate - a.rate;
                     }
-                })
-                .slice(0, 10); // 상위 10명만
-            
-            return rankings;
+                });
+                
+            // 활동 데이터가 없어도 최소 5명은 표시
+            return rankings.slice(0, 10);
         }
 
         // 모바일 탭 기능 설정
@@ -2565,16 +2598,23 @@
         // 멤버의 특정 기간 활동 카운트 계산 함수
         function countMemberActivity(memberId, startDate, endDate, activityType) {
             let count = 0;
+            console.log(`🔍 활동 계산: ${memberId}, ${activityType}, ${formatDate(startDate)} ~ ${formatDate(endDate)}`);
             
             for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
                 const dateStr = formatDate(d);
                 const dayActivity = activities[dateStr];
                 
-                if (dayActivity && dayActivity[activityType] && dayActivity[activityType].includes(memberId)) {
-                    count++;
+                console.log(`🔍 ${dateStr} 체크:`, dayActivity);
+                if (dayActivity && dayActivity[activityType]) {
+                    console.log(`🔍 ${dateStr}의 ${activityType} 참여자:`, dayActivity[activityType]);
+                    if (dayActivity[activityType].includes(memberId)) {
+                        count++;
+                        console.log(`✅ ${dateStr}에 ${activityType} 참여 발견: ${memberId}`);
+                    }
                 }
             }
             
+            console.log(`📊 ${memberId}의 ${activityType} 총 횟수: ${count}`);
             return count;
         }
 
@@ -3391,11 +3431,17 @@
                     localStorage.setItem('localActivities', JSON.stringify({...activities, [dateStr]: activityData}));
                 }
                 activities[dateStr] = activityData;
+                console.log('💾 활동 저장 완료:', dateStr, activityData);
+                console.log('💾 전체 activities 객체:', activities);
+                
                 renderCalendar();
                 renderWeeklyDashboard();
                 renderMonthlyReport();
                 renderMemberList(); // 멤버 상태 업데이트를 위해 목록 다시 렌더링
+                console.log('🔄 랭킹 업데이트 호출...');
+                renderAttendanceRanking(); // 랭킹 업데이트 추가!
                 closeActivityModal();
+                showMessage('✅ 활동이 저장되었습니다! 랭킹이 업데이트되었어요.', 'success');
             } catch (error) {
                 console.error('활동 기록 저장 오류:', error);
                 alert('활동 기록 저장 중 오류가 발생했습니다.');
@@ -3487,12 +3533,12 @@
             weeklyMeetingCount.textContent = `${totalMeetings}회`;
             
             // 주간 운동 미달자 (2회 미만)
-            const underperformers = [];
+            const workoutUnderperformers = [];
             Object.keys(memberWorkoutCounts).forEach(memberId => {
                 if (memberWorkoutCounts[memberId] < 2) {
                     const member = members.find(m => m.id === memberId);
                     if (member) {
-                        underperformers.push({
+                        workoutUnderperformers.push({
                             name: member.nickname || member.name,
                             count: memberWorkoutCounts[memberId]
                         });
@@ -3500,27 +3546,74 @@
                 }
             });
             
+            // 주간 벙 미달자 (1회 미만)
+            const meetingUnderperformers = [];
+            Object.keys(memberMeetingCounts).forEach(memberId => {
+                if (memberMeetingCounts[memberId] < 1) {
+                    const member = members.find(m => m.id === memberId);
+                    if (member) {
+                        meetingUnderperformers.push({
+                            name: member.nickname || member.name,
+                            count: memberMeetingCounts[memberId]
+                        });
+                    }
+                }
+            });
+            
             // 미달자 목록 표시
             weeklyUnderperformers.innerHTML = '';
-            if (underperformers.length === 0) {
+            if (workoutUnderperformers.length === 0 && meetingUnderperformers.length === 0) {
                 weeklyUnderperformers.innerHTML = '<div class="text-center py-6"><div class="text-4xl mb-2">🎉</div><div class="text-sm font-medium text-primary-600">모든 멤버가 목표를 달성했습니다!</div></div>';
             } else {
-                underperformers.forEach(member => {
-                    const memberDiv = document.createElement('div');
-                    memberDiv.className = 'bg-gradient-to-r from-pastel-yellow to-pastel-peach p-3 rounded-xl mb-2 shadow-sm border border-white/30';
-                    memberDiv.innerHTML = `
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-2">
-                                <span class="text-lg">⚠️</span>
-                                <span class="font-semibold text-primary-800">${member.name}</span>
+                // 운동 미달자 섹션
+                if (workoutUnderperformers.length > 0) {
+                    const workoutTitle = document.createElement('div');
+                    workoutTitle.className = 'text-xs font-medium text-amber-700 mb-2 flex items-center';
+                    workoutTitle.innerHTML = '<span class="mr-1">⚠️</span> 주간 운동 미달자 (2회 미만)';
+                    weeklyUnderperformers.appendChild(workoutTitle);
+                    
+                    workoutUnderperformers.forEach(member => {
+                        const memberDiv = document.createElement('div');
+                        memberDiv.className = 'bg-gradient-to-r from-pastel-yellow to-pastel-peach p-3 rounded-xl mb-2 shadow-sm border border-white/30';
+                        memberDiv.innerHTML = `
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-lg">⚠️</span>
+                                    <span class="font-semibold text-primary-800">${member.name}</span>
+                                </div>
+                                <div class="bg-white/60 backdrop-blur-sm px-3 py-1 rounded-lg">
+                                    <span class="text-sm font-bold text-primary-700">${member.count}회</span>
+                                </div>
                             </div>
-                            <div class="bg-white/60 backdrop-blur-sm px-3 py-1 rounded-lg">
-                                <span class="text-sm font-bold text-primary-700">${member.count}회</span>
+                        `;
+                        weeklyUnderperformers.appendChild(memberDiv);
+                    });
+                }
+                
+                // 벙 미달자 섹션
+                if (meetingUnderperformers.length > 0) {
+                    const meetingTitle = document.createElement('div');
+                    meetingTitle.className = 'text-xs font-medium text-red-700 mb-2 mt-3 flex items-center';
+                    meetingTitle.innerHTML = '<span class="mr-1">🚨</span> 주간 벙 미달자 (1회 미만)';
+                    weeklyUnderperformers.appendChild(meetingTitle);
+                    
+                    meetingUnderperformers.forEach(member => {
+                        const memberDiv = document.createElement('div');
+                        memberDiv.className = 'bg-gradient-to-r from-red-100 to-pink-100 p-3 rounded-xl mb-2 shadow-sm border border-white/30';
+                        memberDiv.innerHTML = `
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-lg">🚨</span>
+                                    <span class="font-semibold text-red-800">${member.name}</span>
+                                </div>
+                                <div class="bg-white/60 backdrop-blur-sm px-3 py-1 rounded-lg">
+                                    <span class="text-sm font-bold text-red-700">${member.count}회</span>
+                                </div>
                             </div>
-                        </div>
-                    `;
-                    weeklyUnderperformers.appendChild(memberDiv);
-                });
+                        `;
+                        weeklyUnderperformers.appendChild(memberDiv);
+                    });
+                }
             }
         }
         
@@ -3582,13 +3675,27 @@
             monthlyWorkoutCount.textContent = `${totalWorkouts}회`;
             monthlyMeetingCount.textContent = `${totalMeetings}회`;
             
+            // 월간 운동 미달자 (주간 기준 8회, 즉 월간 8회 미만)
+            const workoutUnderperformers = [];
+            Object.keys(memberWorkoutCounts).forEach(memberId => {
+                if (memberWorkoutCounts[memberId] < 8) {
+                    const member = members.find(m => m.id === memberId);
+                    if (member) {
+                        workoutUnderperformers.push({
+                            name: member.nickname || member.name,
+                            count: memberWorkoutCounts[memberId]
+                        });
+                    }
+                }
+            });
+            
             // 월간 벙 미달자 (1회 미만)
-            const underperformers = [];
+            const meetingUnderperformers = [];
             Object.keys(memberMeetingCounts).forEach(memberId => {
                 if (memberMeetingCounts[memberId] < 1) {
                     const member = members.find(m => m.id === memberId);
                     if (member) {
-                        underperformers.push({
+                        meetingUnderperformers.push({
                             name: member.nickname || member.name,
                             count: memberMeetingCounts[memberId]
                         });
@@ -3598,25 +3705,58 @@
             
             // 미달자 목록 표시
             monthlyUnderperformers.innerHTML = '';
-            if (underperformers.length === 0) {
+            if (workoutUnderperformers.length === 0 && meetingUnderperformers.length === 0) {
                 monthlyUnderperformers.innerHTML = '<div class="text-center py-6"><div class="text-4xl mb-2">🎉</div><div class="text-sm font-medium text-primary-600">모든 멤버가 목표를 달성했습니다!</div></div>';
             } else {
-                underperformers.forEach(member => {
-                    const memberDiv = document.createElement('div');
-                    memberDiv.className = 'bg-gradient-to-r from-pastel-coral to-pastel-pink p-3 rounded-xl mb-2 shadow-sm border border-white/30';
-                    memberDiv.innerHTML = `
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-2">
-                                <span class="text-lg">🚨</span>
-                                <span class="font-semibold text-primary-800">${member.name}</span>
+                // 운동 미달자 섹션
+                if (workoutUnderperformers.length > 0) {
+                    const workoutTitle = document.createElement('div');
+                    workoutTitle.className = 'text-xs font-medium text-amber-700 mb-2 flex items-center';
+                    workoutTitle.innerHTML = '<span class="mr-1">⚠️</span> 월간 운동 미달자 (8회 미만)';
+                    monthlyUnderperformers.appendChild(workoutTitle);
+                    
+                    workoutUnderperformers.forEach(member => {
+                        const memberDiv = document.createElement('div');
+                        memberDiv.className = 'bg-gradient-to-r from-pastel-yellow to-pastel-peach p-3 rounded-xl mb-2 shadow-sm border border-white/30';
+                        memberDiv.innerHTML = `
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-lg">⚠️</span>
+                                    <span class="font-semibold text-primary-800">${member.name}</span>
+                                </div>
+                                <div class="bg-white/60 backdrop-blur-sm px-3 py-1 rounded-lg">
+                                    <span class="text-sm font-bold text-primary-700">${member.count}회</span>
+                                </div>
                             </div>
-                            <div class="bg-white/60 backdrop-blur-sm px-3 py-1 rounded-lg">
-                                <span class="text-sm font-bold text-primary-700">${member.count}회</span>
+                        `;
+                        monthlyUnderperformers.appendChild(memberDiv);
+                    });
+                }
+                
+                // 벙 미달자 섹션
+                if (meetingUnderperformers.length > 0) {
+                    const meetingTitle = document.createElement('div');
+                    meetingTitle.className = 'text-xs font-medium text-red-700 mb-2 mt-3 flex items-center';
+                    meetingTitle.innerHTML = '<span class="mr-1">🚨</span> 월간 벙 미달자 (1회 미만)';
+                    monthlyUnderperformers.appendChild(meetingTitle);
+                    
+                    meetingUnderperformers.forEach(member => {
+                        const memberDiv = document.createElement('div');
+                        memberDiv.className = 'bg-gradient-to-r from-pastel-coral to-pastel-pink p-3 rounded-xl mb-2 shadow-sm border border-white/30';
+                        memberDiv.innerHTML = `
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-lg">🚨</span>
+                                    <span class="font-semibold text-primary-800">${member.name}</span>
+                                </div>
+                                <div class="bg-white/60 backdrop-blur-sm px-3 py-1 rounded-lg">
+                                    <span class="text-sm font-bold text-primary-700">${member.count}회</span>
+                                </div>
                             </div>
-                        </div>
-                    `;
-                    monthlyUnderperformers.appendChild(memberDiv);
-                });
+                        `;
+                        monthlyUnderperformers.appendChild(memberDiv);
+                    });
+                }
             }
         }
 
