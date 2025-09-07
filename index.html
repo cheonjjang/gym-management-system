@@ -662,15 +662,28 @@
                             <div class="flex items-center justify-between mb-4">
                                 <h3 class="text-sm font-bold text-primary-800 flex items-center">
                                     <span class="text-base mr-2">🏆</span>
-                                    출석 랭킹
+                                    랭킹 시스템
                                 </h3>
                                 <button id="refreshRanking" class="text-xs bg-pastel-mint text-primary-700 px-2 py-1 rounded-lg hover:bg-pastel-green transition-colors">
                                     🔄 새로고침
                                 </button>
                             </div>
                             
-                            <!-- 랭킹 기간 선택 -->
+                            <!-- 랭킹 탭 -->
                             <div class="mb-3">
+                                <div class="flex space-x-1 mb-3">
+                                    <button id="totalRankingTab" class="ranking-tab-active flex-1 text-xs py-2 px-3 rounded-lg font-medium bg-gradient-to-r from-pastel-blue to-pastel-mint text-primary-800">
+                                        🏆 종합랭킹
+                                    </button>
+                                    <button id="workoutRankingTab" class="ranking-tab flex-1 text-xs py-2 px-3 rounded-lg font-medium bg-white/30 text-primary-600 hover:bg-white/50">
+                                        💪 운동랭킹
+                                    </button>
+                                    <button id="meetingRankingTab" class="ranking-tab flex-1 text-xs py-2 px-3 rounded-lg font-medium bg-white/30 text-primary-600 hover:bg-white/50">
+                                        🍻 벙랭킹
+                                    </button>
+                                </div>
+                                
+                                <!-- 랭킹 기간 선택 -->
                                 <select id="rankingPeriod" class="input-field w-full px-3 py-2 rounded-lg text-xs font-medium focus:outline-none">
                                     <option value="week">📅 이번주</option>
                                     <option value="month">📅 이번달</option>
@@ -875,7 +888,8 @@
                     <div class="flex items-center justify-between mb-3">
                         <h4 class="text-sm font-bold text-primary-800">👥 멤버 목록</h4>
                         <div class="text-xs text-primary-600">
-                            <span id="workoutCount">0</span>명 운동 | <span id="meetingCount">0</span>명 벙
+                            <span id="workoutCount">0</span>명 운동 | <span id="meetingCount">0</span>명 벙<br>
+                            <span id="workoutVoteCount">0</span>명 운동투표 | <span id="meetingVoteCount">0</span>명 벙투표
                         </div>
                     </div>
                 </div>
@@ -891,6 +905,9 @@
                     <div class="flex space-x-3">
                         <button type="button" id="cancelActivity" class="px-6 py-3 text-primary-600 hover:text-primary-800 font-medium transition-colors rounded-xl hover:bg-pastel-purple">
                             취소
+                        </button>
+                        <button type="button" id="resetActivity" class="bg-gradient-to-r from-orange-400 to-red-400 text-white px-6 py-3 rounded-xl font-medium hover:from-orange-500 hover:to-red-500 transition-all">
+                            🗑️ 초기화
                         </button>
                         <button type="submit" class="btn-primary text-white px-6 py-3 rounded-xl font-medium">
                             💾 저장
@@ -1218,6 +1235,11 @@
             document.getElementById('refreshRanking').addEventListener('click', renderAttendanceRanking);
             document.getElementById('rankingPeriod').addEventListener('change', renderAttendanceRanking);
             
+            // 랭킹 탭 기능
+            document.getElementById('totalRankingTab').addEventListener('click', () => switchRankingTab('total'));
+            document.getElementById('workoutRankingTab').addEventListener('click', () => switchRankingTab('workout'));
+            document.getElementById('meetingRankingTab').addEventListener('click', () => switchRankingTab('meeting'));
+            
             // 모바일 탭 기능
             setupMobileTabs();
             
@@ -1256,6 +1278,7 @@
 
             // 활동 모달
             document.getElementById('cancelActivity').addEventListener('click', closeActivityModal);
+            document.getElementById('resetActivity').addEventListener('click', resetActivityRecord);
             document.getElementById('activityForm').addEventListener('submit', saveActivity);
 
             // 리포트 모달
@@ -2158,6 +2181,27 @@
             document.getElementById('filteredMembers').textContent = filtered;
         }
 
+        // 현재 선택된 랭킹 타입
+        let currentRankingType = 'total';
+        
+        // 랭킹 탭 전환
+        function switchRankingTab(type) {
+            currentRankingType = type;
+            
+            // 탭 스타일 업데이트
+            document.querySelectorAll('.ranking-tab, .ranking-tab-active').forEach(tab => {
+                tab.className = 'ranking-tab flex-1 text-xs py-2 px-3 rounded-lg font-medium bg-white/30 text-primary-600 hover:bg-white/50';
+            });
+            
+            const activeTab = type === 'total' ? 'totalRankingTab' : 
+                             type === 'workout' ? 'workoutRankingTab' : 'meetingRankingTab';
+            
+            document.getElementById(activeTab).className = 'ranking-tab-active flex-1 text-xs py-2 px-3 rounded-lg font-medium bg-gradient-to-r from-pastel-blue to-pastel-mint text-primary-800';
+            
+            // 랭킹 다시 렌더링
+            renderAttendanceRanking();
+        }
+
         // 출석 랭킹 렌더링 (새로운 기능)
         function renderAttendanceRanking() {
             const rankingContainer = document.getElementById('attendanceRanking');
@@ -2165,7 +2209,7 @@
             
             if (!rankingContainer) return;
             
-            const rankings = calculateAttendanceRanking(period);
+            const rankings = calculateAttendanceRanking(period, currentRankingType);
             
             rankingContainer.innerHTML = '';
             
@@ -2185,6 +2229,25 @@
                 
                 rankElement.className = `${isTop3 ? 'bg-gradient-to-r from-pastel-yellow to-pastel-peach' : 'bg-white/30'} p-2 rounded-lg transition-all hover:shadow-soft`;
                 
+                // 랭킹 타입에 따른 정보 표시
+                let detailInfo = '';
+                let mainStat = '';
+                let subStat = '';
+                
+                if (currentRankingType === 'total') {
+                    detailInfo = `운동 ${member.workoutCount}회 | 벙 ${member.meetingCount}회`;
+                    mainStat = `${member.totalActivities}회`;
+                    subStat = `${member.rate}%`;
+                } else if (currentRankingType === 'workout') {
+                    detailInfo = `총 운동 참여`;
+                    mainStat = `${member.workoutCount}회`;
+                    subStat = `${member.workoutRate || 0}%`;
+                } else if (currentRankingType === 'meeting') {
+                    detailInfo = `총 벙 참여`;
+                    mainStat = `${member.meetingCount}회`;
+                    subStat = `${member.meetingRate || 0}%`;
+                }
+                
                 rankElement.innerHTML = `
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-2">
@@ -2192,13 +2255,13 @@
                             <div>
                                 <div class="text-xs font-semibold text-primary-800">${member.name}</div>
                                 <div class="text-xs text-primary-600">
-                                    운동 ${member.workoutCount}회 | 벙 ${member.meetingCount}회
+                                    ${detailInfo}
                                 </div>
                             </div>
                         </div>
                         <div class="text-right">
-                            <div class="text-xs font-bold text-primary-800">${member.totalActivities}회</div>
-                            <div class="text-xs text-primary-600">${member.rate}%</div>
+                            <div class="text-xs font-bold text-primary-800">${mainStat}</div>
+                            <div class="text-xs text-primary-600">${subStat}</div>
                         </div>
                     </div>
                 `;
@@ -2216,7 +2279,7 @@
         }
 
         // 출석 랭킹 계산
-        function calculateAttendanceRanking(period) {
+        function calculateAttendanceRanking(period, rankingType = 'total') {
             const now = new Date();
             let startDate, endDate;
             
@@ -2253,21 +2316,42 @@
                     const rate = maxPossibleActivities > 0 ? 
                                 Math.round((totalActivities / maxPossibleActivities) * 100) : 0;
                     
+                    // 개별 활동 참여율 계산
+                    const workoutRate = possibleDays > 0 ? Math.round((workoutCount / possibleDays) * 100) : 0;
+                    const meetingRate = possibleDays > 0 ? Math.round((meetingCount / possibleDays) * 100) : 0;
+                    
                     return {
                         id: member.id,
                         name: member.nickname || member.name,
                         workoutCount,
                         meetingCount,
                         totalActivities,
-                        rate: Math.min(rate, 100) // 100% 초과 방지
+                        rate: Math.min(rate, 100), // 100% 초과 방지
+                        workoutRate: Math.min(workoutRate, 100),
+                        meetingRate: Math.min(meetingRate, 100)
                     };
                 })
                 .sort((a, b) => {
-                    // 총 활동 수로 1차 정렬, 참여율로 2차 정렬
-                    if (b.totalActivities !== a.totalActivities) {
-                        return b.totalActivities - a.totalActivities;
+                    // 랭킹 타입에 따른 정렬
+                    if (rankingType === 'workout') {
+                        // 운동 랭킹: 운동 횟수로 정렬
+                        if (b.workoutCount !== a.workoutCount) {
+                            return b.workoutCount - a.workoutCount;
+                        }
+                        return b.workoutRate - a.workoutRate;
+                    } else if (rankingType === 'meeting') {
+                        // 벙 랭킹: 벙 횟수로 정렬
+                        if (b.meetingCount !== a.meetingCount) {
+                            return b.meetingCount - a.meetingCount;
+                        }
+                        return b.meetingRate - a.meetingRate;
+                    } else {
+                        // 종합 랭킹: 총 활동 수로 1차 정렬, 참여율로 2차 정렬
+                        if (b.totalActivities !== a.totalActivities) {
+                            return b.totalActivities - a.totalActivities;
+                        }
+                        return b.rate - a.rate;
                     }
-                    return b.rate - a.rate;
                 })
                 .slice(0, 10); // 상위 10명만
             
@@ -2744,24 +2828,48 @@
                 const currentActivity = activities[dateStr] || {};
                 const hasWorkout = currentActivity.workout && currentActivity.workout.includes(member.id);
                 const hasMeeting = currentActivity.meeting && currentActivity.meeting.includes(member.id);
+                const hasWorkoutVote = currentActivity.workoutVote && currentActivity.workoutVote.includes(member.id);
+                const hasMeetingVote = currentActivity.meetingVote && currentActivity.meetingVote.includes(member.id);
                 
                 const roleIcon = getRoleIcon(member.role);
                 
                 memberDiv.innerHTML = `
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-2">
-                            <span class="text-lg">${roleIcon}</span>
-                            <span class="font-semibold text-primary-800">${member.nickname || member.name}</span>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-lg">${roleIcon}</span>
+                                <span class="font-semibold text-primary-800">${member.nickname || member.name}</span>
+                            </div>
                         </div>
-                        <div class="flex space-x-4">
-                            <label class="flex items-center space-x-2 cursor-pointer">
-                                <input type="checkbox" name="workout" value="${member.id}" ${hasWorkout ? 'checked' : ''} class="w-4 h-4 text-primary-600 rounded workout-checkbox">
-                                <span class="text-sm font-medium text-primary-700 bg-pastel-blue px-2 py-1 rounded-lg">💪 운동</span>
-                            </label>
-                            <label class="flex items-center space-x-2 cursor-pointer">
-                                <input type="checkbox" name="meeting" value="${member.id}" ${hasMeeting ? 'checked' : ''} class="w-4 h-4 text-primary-600 rounded meeting-checkbox">
-                                <span class="text-sm font-medium text-primary-700 bg-pastel-green px-2 py-1 rounded-lg">🍻 벙</span>
-                            </label>
+                        
+                        <!-- 활동 참여 -->
+                        <div class="bg-white/30 p-2 rounded-lg">
+                            <div class="text-xs font-bold text-primary-700 mb-2">✅ 활동 참여</div>
+                            <div class="flex space-x-3">
+                                <label class="flex items-center space-x-1 cursor-pointer">
+                                    <input type="checkbox" name="workout" value="${member.id}" ${hasWorkout ? 'checked' : ''} class="w-3 h-3 text-primary-600 rounded workout-checkbox">
+                                    <span class="text-xs font-medium text-primary-700 bg-pastel-blue px-2 py-1 rounded">💪 운동</span>
+                                </label>
+                                <label class="flex items-center space-x-1 cursor-pointer">
+                                    <input type="checkbox" name="meeting" value="${member.id}" ${hasMeeting ? 'checked' : ''} class="w-3 h-3 text-primary-600 rounded meeting-checkbox">
+                                    <span class="text-xs font-medium text-primary-700 bg-pastel-green px-2 py-1 rounded">🍻 벙</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- 투표 참여 -->
+                        <div class="bg-white/30 p-2 rounded-lg">
+                            <div class="text-xs font-bold text-primary-700 mb-2">🗳️ 투표 참여</div>
+                            <div class="flex space-x-3">
+                                <label class="flex items-center space-x-1 cursor-pointer">
+                                    <input type="checkbox" name="workoutVote" value="${member.id}" ${hasWorkoutVote ? 'checked' : ''} class="w-3 h-3 text-purple-600 rounded workout-vote-checkbox">
+                                    <span class="text-xs font-medium text-primary-700 bg-pastel-purple px-2 py-1 rounded">🗳️ 운동투표</span>
+                                </label>
+                                <label class="flex items-center space-x-1 cursor-pointer">
+                                    <input type="checkbox" name="meetingVote" value="${member.id}" ${hasMeetingVote ? 'checked' : ''} class="w-3 h-3 text-purple-600 rounded meeting-vote-checkbox">
+                                    <span class="text-xs font-medium text-primary-700 bg-pastel-coral px-2 py-1 rounded">🗳️ 벙투표</span>
+                                </label>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -2850,7 +2958,7 @@
         
         // 체크박스 리스너 설정
         function setupCheckboxListeners() {
-            document.querySelectorAll('.workout-checkbox, .meeting-checkbox').forEach(checkbox => {
+            document.querySelectorAll('.workout-checkbox, .meeting-checkbox, .workout-vote-checkbox, .meeting-vote-checkbox').forEach(checkbox => {
                 checkbox.addEventListener('change', () => {
                     updateActivityCounts();
                     updateAttendanceRates();
@@ -2862,9 +2970,13 @@
         function updateActivityCounts() {
             const workoutCount = document.querySelectorAll('.workout-checkbox:checked').length;
             const meetingCount = document.querySelectorAll('.meeting-checkbox:checked').length;
+            const workoutVoteCount = document.querySelectorAll('.workout-vote-checkbox:checked').length;
+            const meetingVoteCount = document.querySelectorAll('.meeting-vote-checkbox:checked').length;
             
             document.getElementById('workoutCount').textContent = workoutCount;
             document.getElementById('meetingCount').textContent = meetingCount;
+            document.getElementById('workoutVoteCount').textContent = workoutVoteCount;
+            document.getElementById('meetingVoteCount').textContent = meetingVoteCount;
         }
 
         // 참여율 업데이트 (새로운 기능)
@@ -3174,6 +3286,59 @@
             document.getElementById('activityModal').classList.remove('active');
         }
 
+        // 활동 기록 초기화
+        function resetActivityRecord() {
+            const modal = document.getElementById('activityModal');
+            const dateStr = modal.dataset.date;
+            
+            if (!dateStr) return;
+            
+            if (confirm('⚠️ 이 날짜의 모든 활동 기록을 삭제하시겠습니까?\n\n삭제된 데이터는 복구할 수 없습니다.')) {
+                try {
+                    // 해당 날짜의 활동 데이터 삭제
+                    if (activities[dateStr]) {
+                        delete activities[dateStr];
+                    }
+                    
+                    // Firebase에서 삭제 (연결된 경우)
+                    if (db) {
+                        db.collection('v2_activities').doc(dateStr).delete()
+                            .then(() => {
+                                console.log('Firebase에서 활동 기록 삭제 완료:', dateStr);
+                            })
+                            .catch(error => {
+                                console.error('Firebase 삭제 오류:', error);
+                            });
+                    }
+                    
+                    // 로컬 스토리지 업데이트
+                    localStorage.setItem('localActivities', JSON.stringify(activities));
+                    
+                    // 화면 업데이트
+                    renderCalendar();
+                    renderWeeklyDashboard();
+                    renderMonthlyReport();
+                    renderMemberList(); // 멤버 상태 업데이트
+                    renderAttendanceRanking(); // 랭킹 업데이트
+                    
+                    // 모달 내 체크박스 모두 해제
+                    const checkboxes = modal.querySelectorAll('input[type="checkbox"]');
+                    checkboxes.forEach(checkbox => {
+                        checkbox.checked = false;
+                    });
+                    
+                    // 참여율 업데이트
+                    updateAttendanceRates();
+                    
+                    showMessage(`🗑️ ${dateStr} 활동 기록이 삭제되었습니다.`, 'success');
+                    
+                } catch (error) {
+                    console.error('활동 기록 삭제 오류:', error);
+                    showMessage('❌ 삭제 중 오류가 발생했습니다.', 'error');
+                }
+            }
+        }
+
         async function saveActivity(e) {
             e.preventDefault();
             const modal = document.getElementById('activityModal');
@@ -3181,14 +3346,20 @@
             
             const workoutCheckboxes = modal.querySelectorAll('input[name="workout"]:checked');
             const meetingCheckboxes = modal.querySelectorAll('input[name="meeting"]:checked');
+            const workoutVoteCheckboxes = modal.querySelectorAll('input[name="workoutVote"]:checked');
+            const meetingVoteCheckboxes = modal.querySelectorAll('input[name="meetingVote"]:checked');
             
             const workoutMembers = Array.from(workoutCheckboxes).map(cb => cb.value);
             const meetingMembers = Array.from(meetingCheckboxes).map(cb => cb.value);
+            const workoutVoteMembers = Array.from(workoutVoteCheckboxes).map(cb => cb.value);
+            const meetingVoteMembers = Array.from(meetingVoteCheckboxes).map(cb => cb.value);
             
             const activityData = {
                 date: dateStr,
                 workout: workoutMembers,
                 meeting: meetingMembers,
+                workoutVote: workoutVoteMembers,
+                meetingVote: meetingVoteMembers,
                 updatedAt: new Date().toISOString(),
                 updatedBy: currentUser.id
             };
@@ -3239,10 +3410,10 @@
             const weeklyMeetingCount = document.getElementById('weeklyMeetingCount');
             const weeklyUnderperformers = document.getElementById('weeklyUnderperformers');
             
-            // 현재 주의 시작일과 종료일 계산
+            // 현재 주의 시작일과 종료일 계산 (월요일 시작)
             const startOfWeek = new Date(currentWeekDate);
             const day = startOfWeek.getDay();
-            const diff = startOfWeek.getDate() - day; // 일요일을 주의 시작으로
+            const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1); // 월요일을 주의 시작으로
             startOfWeek.setDate(diff);
             
             const endOfWeek = new Date(startOfWeek);
