@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>멤버 목록 테스트</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-8">
+    <div class="max-w-md mx-auto bg-white rounded-lg shadow p-6">
+        <h1 class="text-xl font-bold mb-4">멤버 목록 테스트</h1>
+        <button id="loadMembers" class="bg-blue-600 text-white px-4 py-2 rounded mb-4">멤버 로드</button>
+        <div id="memberList" class="space-y-2">
+            <!-- 멤버 목록이 여기에 표시됩니다 -->
+        </div>
+    </div>
+
+    <script>
+        const members = [
+            { id: '서아', name: '서아', nickname: '서아', role: 'super_admin' },
+            { id: 'member_치즈', name: '치즈', nickname: '치즈', role: 'member' },
+            { id: 'member_커프', name: '커프', nickname: '커프', role: 'member' },
+            { id: 'member_하우지', name: '하우지', nickname: '하우지', role: 'member' },
+            { id: 'member_헬린', name: '헬린', nickname: '헬린', role: 'member' },
+            { id: 'member_황기적', name: '황기적', nickname: '황기적', role: 'member' },
+            { id: 'member_블랙', name: '블랙', nickname: '블랙', role: 'member' },
+            { id: 'member_시원', name: '시원', nickname: '시원', role: 'member' },
+            { id: 'member_어지', name: '어지', nickname: '어지', role: 'member' },
+            { id: 'member_줄시작', name: '줄시작', nickname: '줄시작', role: 'member' },
+            { id: 'member_조폭', name: '조폭', nickname: '조폭', role: 'member' },
+            { id: 'member_밥밥', name: '밥밥', nickname: '밥밥', role: 'member' },
+            { id: 'member_뱃살마왕', name: '뱃살마왕', nickname: '뱃살마왕', role: 'member' },
+            { id: 'member_봉동', name: '봉동', nickname: '봉동', role: 'member' },
+            { id: 'member_부치', name: '부치', nickname: '부치', role: 'member' },
+            { id: 'member_구름', name: '구름', nickname: '구름', role: 'member' },
+            { id: 'member_꿀밤', name: '꿀밤', nickname: '꿀밤', role: 'member' },
+            { id: 'member_나영', name: '나영', nickname: '나영', role: 'member' },
+            { id: 'member_무지', name: '무지', nickname: '무지', role: 'member' },
+            { id: 'member_민영', name: '민영', nickname: '민영', role: 'member' },
+            { id: 'member_갤럭시', name: '갤럭시', nickname: '갤럭시', role: 'member' },
+            { id: 'member_거북', name: '거북', nickname: '거북', role: 'member' },
+            { id: 'member_기룬', name: '기룬', nickname: '기룬', role: 'admin' },
+            { id: 'member_오슈', name: '오슈', nickname: '오슈', role: 'member' },
+            { id: 'member_초보', name: '초보', nickname: '초보', role: 'member' }
+        ];
+
+        function getRoleIcon(role) {
+            switch (role) {
+                case 'super_admin': return '👑';
+                case 'admin': return '⭐';
+                default: return '';
+            }
+        }
+
+        function renderMemberList() {
+            const memberListDiv = document.getElementById('memberList');
+            memberListDiv.innerHTML = '';
+            
+            console.log('멤버 수:', members.length);
+            
+            members.forEach((member, index) => {
+                const memberElement = document.createElement('div');
+                const roleIcon = getRoleIcon(member.role);
+                
+                memberElement.className = 'p-3 border border-gray-200 rounded-md bg-gray-50';
+                memberElement.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="font-medium">${roleIcon} ${member.nickname}</div>
+                            <div class="text-sm text-gray-600">${member.name}</div>
+                        </div>
+                        <div class="text-xs text-gray-500">#${index + 1}</div>
+                    </div>
+                `;
+                
+                memberListDiv.appendChild(memberElement);
+            });
+        }
+
+        document.getElementById('loadMembers').addEventListener('click', function() {
+            console.log('멤버 로드 버튼 클릭됨');
+            renderMemberList();
+        });
+
+        // 페이지 로드 시 자동으로 멤버 목록 표시
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('페이지 로드 완료');
+            renderMemberList();
+        });
+    </script>
+</body>
+</html>
