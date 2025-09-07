@@ -4211,31 +4211,88 @@
             }, 3000);
         }
 
-        // 클립보드 복사 함수
+        // 클립보드 복사 함수 (Promise 반환)
         function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                showMessage('📋 클립보드에 복사되었습니다!', 'success');
-            }).catch(() => {
-                // 클립보드 API가 지원되지 않는 경우 fallback
-                const textArea = document.createElement('textarea');
-                textArea.value = text;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-                showMessage('📋 클립보드에 복사되었습니다!', 'success');
+            return new Promise((resolve, reject) => {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    // 최신 Clipboard API 사용
+                    navigator.clipboard.writeText(text)
+                        .then(() => {
+                            resolve();
+                        })
+                        .catch(() => {
+                            // fallback 시도
+                            try {
+                                const textArea = document.createElement('textarea');
+                                textArea.value = text;
+                                textArea.style.position = 'fixed';
+                                textArea.style.opacity = '0';
+                                document.body.appendChild(textArea);
+                                textArea.select();
+                                textArea.setSelectionRange(0, 99999); // 모바일 지원
+                                const successful = document.execCommand('copy');
+                                document.body.removeChild(textArea);
+                                
+                                if (successful) {
+                                    resolve();
+                                } else {
+                                    reject(new Error('복사 실패'));
+                                }
+                            } catch (err) {
+                                reject(err);
+                            }
+                        });
+                } else {
+                    // 구형 브라우저 fallback
+                    try {
+                        const textArea = document.createElement('textarea');
+                        textArea.value = text;
+                        textArea.style.position = 'fixed';
+                        textArea.style.opacity = '0';
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        textArea.setSelectionRange(0, 99999);
+                        const successful = document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                        
+                        if (successful) {
+                            resolve();
+                        } else {
+                            reject(new Error('복사 실패'));
+                        }
+                    } catch (err) {
+                        reject(err);
+                    }
+                }
             });
         }
 
-        // 계정 정보 전송 (실제로는 SMS나 이메일 연동 필요)
+        // 계정 정보 클립보드 복사
         function sendAccountInfo(loginId, password, name) {
-            // 여기서는 시연용으로 콘솔에 출력
-            const message = `[운동 방 관리 시스템] ${name}님의 부방장 계정이 생성되었습니다.\n아이디: ${loginId}\n임시 비밀번호: ${password}\n\n첫 로그인 후 반드시 비밀번호를 변경해주세요.`;
+            const message = `🎉 [운동 방 관리 시스템] 부방장 계정 생성 완료!
+
+👤 이름: ${name}님
+🆔 아이디: ${loginId}
+🔐 임시 비밀번호: ${password}
+
+⚠️ 중요 안내:
+• 첫 로그인 후 반드시 비밀번호를 변경해주세요
+• 로그인 → 🔐 비밀번호 변경 메뉴 이용
+• 계정 정보는 안전하게 보관해주세요
+
+🔗 접속 주소: https://gym-management1.netlify.app/
+
+💪 함께 건강한 운동 습관을 만들어가요!`;
             
-            console.log('전송될 메시지:', message);
-            
-            // 실제 구현 시에는 여기에 SMS/이메일 전송 로직 추가
-            showMessage('📱 계정 정보가 전송되었습니다! (개발 모드: 콘솔 확인)', 'success');
+            // 클립보드에 복사
+            copyToClipboard(message).then(() => {
+                showMessage('📋 계정 정보가 클립보드에 복사되었습니다!\n카카오톡이나 문자로 전달해주세요! 💬', 'success');
+                console.log('복사된 메시지:', message);
+            }).catch(() => {
+                // 클립보드 복사 실패 시 콘솔에 표시
+                console.log('📋 복사할 메시지:', message);
+                showMessage('📋 메시지를 콘솔에서 확인하여 복사해주세요!', 'info');
+            });
         }
 
         // 데이터 내보내기 관련 함수들
