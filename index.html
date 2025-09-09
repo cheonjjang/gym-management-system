@@ -327,20 +327,11 @@
                         
                         <!-- 데스크톱 버튼들 -->
                         <div class="hidden lg:flex items-center space-x-3">
-                            <button id="forceInitBtn" class="btn-secondary px-3 py-2 rounded-xl text-sm font-medium hidden">
-                                🔄 Firebase 초기화
-                            </button>
                             <button id="changePasswordBtn" class="bg-gradient-to-r from-pastel-coral to-pastel-pink text-primary-800 px-4 py-2 rounded-xl font-medium hover:shadow-soft transition-all">
                                 🔐 비밀번호 변경
                             </button>
                             <button id="exportBtn" class="bg-gradient-to-r from-pastel-green to-pastel-mint text-primary-800 px-4 py-2 rounded-xl font-medium hover:shadow-soft transition-all hidden">
                                 📁 데이터 내보내기
-                            </button>
-                            <button onclick="debugDataSaving()" class="bg-gradient-to-r from-soft-orange to-soft-coral text-white px-4 py-2 rounded-xl hover:shadow-soft transition-all font-medium">
-                                🔧 데이터 상태
-                            </button>
-                            <button onclick="resetAllData()" class="bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded-xl hover:shadow-soft transition-all font-medium">
-                                🗑️ 완전 초기화
                             </button>
                             <button id="logoutBtn" class="bg-gradient-to-r from-gray-400 to-gray-500 text-white px-4 py-2 rounded-xl hover:from-gray-500 hover:to-gray-600 transition-all font-medium">
                                 로그아웃
@@ -1416,8 +1407,7 @@
             // 데이터 내보내기
             document.getElementById('exportBtn').addEventListener('click', openExportModal);
             
-            // 강제 초기화 (방장만)
-            document.getElementById('forceInitBtn').addEventListener('click', forceFirebaseInit);
+            // 강제 초기화 버튼 삭제됨
         }
 
         function setupModalEventListeners() {
@@ -1607,10 +1597,9 @@
             const roleText = currentUser.role === 'super_admin' ? '방장' : '부방장';
             userInfo.textContent = `${currentUser.name} (${roleText})`;
             
-            // 방장만 공지수정 버튼과 강제 초기화 버튼 표시
+            // 방장만 공지수정 버튼 표시
             if (currentUser.role === 'super_admin') {
                 document.getElementById('editNoticeBtn').classList.remove('hidden');
-                document.getElementById('forceInitBtn').classList.remove('hidden');
             }
 
             // 데이터 로드
