@@ -2128,30 +2128,44 @@
             
             switch (sortType) {
                 case 'name':
-                    return sorted.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+                    // 이름순 (한글 자음 순서)
+                    return sorted.sort((a, b) => {
+                        const nameA = (a.nickname || a.name || '').trim();
+                        const nameB = (b.nickname || b.name || '').trim();
+                        return nameA.localeCompare(nameB, 'ko-KR');
+                    });
                 case 'joinDate':
+                    // 가입일순 (최신순)
                     return sorted.sort((a, b) => {
                         const dateA = a.joinDate ? new Date(a.joinDate) : new Date(0);
                         const dateB = b.joinDate ? new Date(b.joinDate) : new Date(0);
-                        return dateB - dateA; // 최신순
+                        return dateB - dateA;
                     });
                 case 'activity':
+                    // 활동순 (활동 많은 순)
                     return sorted.sort((a, b) => {
-                        const activityA = countMemberActivity(a.id, new Date(2024, 0, 1), new Date(), 'workout') + 
-                                        countMemberActivity(a.id, new Date(2024, 0, 1), new Date(), 'meeting');
-                        const activityB = countMemberActivity(b.id, new Date(2024, 0, 1), new Date(), 'workout') + 
-                                        countMemberActivity(b.id, new Date(2024, 0, 1), new Date(), 'meeting');
-                        return activityB - activityA; // 활동 많은 순
+                        const activityA = countMemberActivity(a.id, new Date(2025, 0, 1), new Date(), 'workout') + 
+                                        countMemberActivity(a.id, new Date(2025, 0, 1), new Date(), 'meeting');
+                        const activityB = countMemberActivity(b.id, new Date(2025, 0, 1), new Date(), 'workout') + 
+                                        countMemberActivity(b.id, new Date(2025, 0, 1), new Date(), 'meeting');
+                        return activityB - activityA;
                     });
                 case 'status':
+                    // 상태순 (문제 있는 순서대로)
                     const statusOrder = { 'removal': 0, 'monthly-warning': 1, 'weekly-warning': 2, 'active': 3, 'inactive': 4 };
                     return sorted.sort((a, b) => {
                         const statusA = getMemberStatus(a);
                         const statusB = getMemberStatus(b);
                         return statusOrder[statusA] - statusOrder[statusB];
                     });
+                case 'default':
                 default:
-                    return sorted;
+                    // 기본순 (한글 자음 순서)
+                    return sorted.sort((a, b) => {
+                        const nameA = (a.nickname || a.name || '').trim();
+                        const nameB = (b.nickname || b.name || '').trim();
+                        return nameA.localeCompare(nameB, 'ko-KR');
+                    });
             }
         }
 
@@ -2980,6 +2994,13 @@
                 const filteredMembers = activeMembers.filter(member => {
                     const name = member.nickname || member.name || '';
                     return name.toLowerCase().includes(searchTerm.toLowerCase());
+                });
+                
+                // 한글 자음 순서로 정렬 (ㄱ~ㅎ)
+                filteredMembers.sort((a, b) => {
+                    const nameA = (a.nickname || a.name || '').trim();
+                    const nameB = (b.nickname || b.name || '').trim();
+                    return nameA.localeCompare(nameB, 'ko-KR');
                 });
                 
                 filteredMembers.forEach(member => {
