@@ -2987,92 +2987,100 @@
             searchInput.value = '';
             
             function renderMemberList(searchTerm = '') {
-                // 현재 체크된 상태를 저장
-                const checkedStates = {};
-                const workoutCheckboxes = memberList.querySelectorAll('input[name="workout"]');
-                const meetingCheckboxes = memberList.querySelectorAll('input[name="meeting"]');
-                
-                workoutCheckboxes.forEach(checkbox => {
-                    checkedStates[checkbox.value] = checkedStates[checkbox.value] || {};
-                    checkedStates[checkbox.value].workout = checkbox.checked;
-                });
-                
-                meetingCheckboxes.forEach(checkbox => {
-                    checkedStates[checkbox.value] = checkedStates[checkbox.value] || {};
-                    checkedStates[checkbox.value].meeting = checkbox.checked;
-                });
-                
-                memberList.innerHTML = '';
                 const activeMembers = members.filter(m => m.isActive !== false);
                 
-                // 검색어로 필터링
-                const filteredMembers = activeMembers.filter(member => {
-                    const name = member.nickname || member.name || '';
-                    return name.toLowerCase().includes(searchTerm.toLowerCase());
-                });
-                
                 // 한글 자음 순서로 정렬 (ㄱ~ㅎ)
-                filteredMembers.sort((a, b) => {
+                activeMembers.sort((a, b) => {
                     const nameA = (a.nickname || a.name || '').trim();
                     const nameB = (b.nickname || b.name || '').trim();
                     return nameA.localeCompare(nameB, 'ko-KR');
                 });
                 
-                filteredMembers.forEach(member => {
-                console.log(`🔍 모달에 표시되는 멤버: ID="${member.id}", 이름="${member.nickname || member.name}"`);
-                const memberDiv = document.createElement('div');
-                memberDiv.className = 'card-gradient p-3 rounded-lg border border-white/20';
+                // 첫 번째 렌더링인지 확인 (memberList가 비어있으면 첫 번째)
+                const isFirstRender = memberList.children.length === 0;
                 
-                const currentActivity = activities[dateStr] || {};
-                
-                // 체크 상태 결정: 사용자가 체크한 상태가 있으면 우선, 없으면 기존 데이터 사용
-                let hasWorkout, hasMeeting;
-                if (checkedStates[member.id]) {
-                    hasWorkout = checkedStates[member.id].workout !== undefined ? 
-                               checkedStates[member.id].workout : 
-                               (currentActivity.workout && currentActivity.workout.includes(member.id));
-                    hasMeeting = checkedStates[member.id].meeting !== undefined ? 
-                               checkedStates[member.id].meeting : 
-                               (currentActivity.meeting && currentActivity.meeting.includes(member.id));
+                if (isFirstRender) {
+                    // 첫 번째 렌더링: 모든 멤버 카드 생성
+                    memberList.innerHTML = '';
+                    
+                    activeMembers.forEach(member => {
+                        console.log(`🔍 모달에 표시되는 멤버: ID="${member.id}", 이름="${member.nickname || member.name}"`);
+                        const memberDiv = document.createElement('div');
+                        memberDiv.className = 'card-gradient p-3 rounded-lg border border-white/20';
+                        memberDiv.dataset.memberId = member.id;
+                        memberDiv.dataset.memberName = (member.nickname || member.name || '').toLowerCase();
+                        
+                        const currentActivity = activities[dateStr] || {};
+                        const hasWorkout = currentActivity.workout && currentActivity.workout.includes(member.id);
+                        const hasMeeting = currentActivity.meeting && currentActivity.meeting.includes(member.id);
+                        
+                        const roleIcon = getRoleIcon(member.role);
+                        
+                        memberDiv.innerHTML = `
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-sm">${roleIcon}</span>
+                                    <span class="font-semibold text-primary-800 text-sm">${member.nickname || member.name}</span>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <label class="flex items-center space-x-1 cursor-pointer">
+                                        <input type="checkbox" name="workout" value="${member.id}" ${hasWorkout ? 'checked' : ''} class="w-4 h-4 text-primary-600 rounded workout-checkbox">
+                                        <span class="text-xs font-medium text-primary-700 bg-pastel-blue px-2 py-1 rounded">💪 운동</span>
+                                    </label>
+                                    <label class="flex items-center space-x-1 cursor-pointer">
+                                        <input type="checkbox" name="meeting" value="${member.id}" ${hasMeeting ? 'checked' : ''} class="w-4 h-4 text-primary-600 rounded meeting-checkbox">
+                                        <span class="text-xs font-medium text-primary-700 bg-pastel-green px-2 py-1 rounded">🍻 벙</span>
+                                    </label>
+                                </div>
+                            </div>
+                        `;
+                        
+                        memberList.appendChild(memberDiv);
+                    });
                 } else {
-                    hasWorkout = currentActivity.workout && currentActivity.workout.includes(member.id);
-                    hasMeeting = currentActivity.meeting && currentActivity.meeting.includes(member.id);
+                    // 검색 시: 기존 카드들의 표시/숨김만 제어
+                    const allMemberCards = memberList.querySelectorAll('[data-member-id]');
+                    
+                    allMemberCards.forEach(card => {
+                        const memberName = card.dataset.memberName || '';
+                        const shouldShow = memberName.includes(searchTerm.toLowerCase());
+                        
+                        if (shouldShow) {
+                            card.style.display = 'block';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
                 }
                 
-                const roleIcon = getRoleIcon(member.role);
-                
-                memberDiv.innerHTML = `
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-2">
-                            <span class="text-sm">${roleIcon}</span>
-                            <span class="font-semibold text-primary-800 text-sm">${member.nickname || member.name}</span>
-                        </div>
-                        <div class="flex space-x-2">
-                            <label class="flex items-center space-x-1 cursor-pointer">
-                                <input type="checkbox" name="workout" value="${member.id}" ${hasWorkout ? 'checked' : ''} class="w-4 h-4 text-primary-600 rounded workout-checkbox">
-                                <span class="text-xs font-medium text-primary-700 bg-pastel-blue px-2 py-1 rounded">💪 운동</span>
-                            </label>
-                            <label class="flex items-center space-x-1 cursor-pointer">
-                                <input type="checkbox" name="meeting" value="${member.id}" ${hasMeeting ? 'checked' : ''} class="w-4 h-4 text-primary-600 rounded meeting-checkbox">
-                                <span class="text-xs font-medium text-primary-700 bg-pastel-green px-2 py-1 rounded">🍻 벙</span>
-                            </label>
-                        </div>
-                    </div>
-                `;
-                
-                memberList.appendChild(memberDiv);
-                });
-                
-                // 검색 결과가 없을 때 메시지 표시
-                if (filteredMembers.length === 0) {
-                    const noResultDiv = document.createElement('div');
-                    noResultDiv.className = 'text-center py-4 text-primary-500';
-                    noResultDiv.innerHTML = `
-                        <div class="text-2xl mb-2">🔍</div>
-                        <div class="text-sm">검색 결과가 없습니다</div>
-                        <div class="text-xs text-primary-400 mt-1">"${searchTerm}" 와 일치하는 멤버가 없어요</div>
-                    `;
-                    memberList.appendChild(noResultDiv);
+                // 검색 시 결과가 없을 때 메시지 표시 (검색어가 있을 때만)
+                if (searchTerm && !isFirstRender) {
+                    const visibleCards = Array.from(memberList.querySelectorAll('[data-member-id]')).filter(
+                        card => card.style.display !== 'none'
+                    );
+                    
+                    // 기존 "검색 결과 없음" 메시지 제거
+                    const existingNoResult = memberList.querySelector('.no-search-result');
+                    if (existingNoResult) {
+                        existingNoResult.remove();
+                    }
+                    
+                    if (visibleCards.length === 0) {
+                        const noResultDiv = document.createElement('div');
+                        noResultDiv.className = 'text-center py-4 text-primary-500 no-search-result';
+                        noResultDiv.innerHTML = `
+                            <div class="text-2xl mb-2">🔍</div>
+                            <div class="text-sm">검색 결과가 없습니다</div>
+                            <div class="text-xs text-primary-400 mt-1">"${searchTerm}" 와 일치하는 멤버가 없어요</div>
+                        `;
+                        memberList.appendChild(noResultDiv);
+                    }
+                } else if (!searchTerm) {
+                    // 검색어가 없으면 "검색 결과 없음" 메시지 제거
+                    const existingNoResult = memberList.querySelector('.no-search-result');
+                    if (existingNoResult) {
+                        existingNoResult.remove();
+                    }
                 }
                 
                 // 빠른 액션 버튼들이 삭제되어 주석 처리
