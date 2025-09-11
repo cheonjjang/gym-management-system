@@ -2987,6 +2987,21 @@
             searchInput.value = '';
             
             function renderMemberList(searchTerm = '') {
+                // 현재 체크된 상태를 저장
+                const checkedStates = {};
+                const workoutCheckboxes = memberList.querySelectorAll('input[name="workout"]');
+                const meetingCheckboxes = memberList.querySelectorAll('input[name="meeting"]');
+                
+                workoutCheckboxes.forEach(checkbox => {
+                    checkedStates[checkbox.value] = checkedStates[checkbox.value] || {};
+                    checkedStates[checkbox.value].workout = checkbox.checked;
+                });
+                
+                meetingCheckboxes.forEach(checkbox => {
+                    checkedStates[checkbox.value] = checkedStates[checkbox.value] || {};
+                    checkedStates[checkbox.value].meeting = checkbox.checked;
+                });
+                
                 memberList.innerHTML = '';
                 const activeMembers = members.filter(m => m.isActive !== false);
                 
@@ -3009,8 +3024,20 @@
                 memberDiv.className = 'card-gradient p-3 rounded-lg border border-white/20';
                 
                 const currentActivity = activities[dateStr] || {};
-                const hasWorkout = currentActivity.workout && currentActivity.workout.includes(member.id);
-                const hasMeeting = currentActivity.meeting && currentActivity.meeting.includes(member.id);
+                
+                // 체크 상태 결정: 사용자가 체크한 상태가 있으면 우선, 없으면 기존 데이터 사용
+                let hasWorkout, hasMeeting;
+                if (checkedStates[member.id]) {
+                    hasWorkout = checkedStates[member.id].workout !== undefined ? 
+                               checkedStates[member.id].workout : 
+                               (currentActivity.workout && currentActivity.workout.includes(member.id));
+                    hasMeeting = checkedStates[member.id].meeting !== undefined ? 
+                               checkedStates[member.id].meeting : 
+                               (currentActivity.meeting && currentActivity.meeting.includes(member.id));
+                } else {
+                    hasWorkout = currentActivity.workout && currentActivity.workout.includes(member.id);
+                    hasMeeting = currentActivity.meeting && currentActivity.meeting.includes(member.id);
+                }
                 
                 const roleIcon = getRoleIcon(member.role);
                 
