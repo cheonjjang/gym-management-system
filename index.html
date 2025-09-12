@@ -580,7 +580,7 @@
                         <div class="mb-5 space-y-3">
                             <!-- 검색 -->
                             <div class="relative">
-                                <input type="text" id="memberSearch" placeholder="🔍 멤버 검색 (이름, 닉네임)" 
+                                <input type="text" id="memberSearch" placeholder="🔍 멤버 검색 (이름, 닉네임, 초성)" 
                                        class="input-field w-full px-4 py-3 pl-10 rounded-xl text-sm font-medium focus:outline-none">
                                 <div class="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary-400">
                                     🔍
@@ -823,7 +823,7 @@
                     <!-- 멤버 검색 -->
                     <div class="mb-3">
                         <div class="relative">
-                            <input type="text" id="memberSearchInput" placeholder="멤버 이름 검색..." 
+                            <input type="text" id="memberSearchInput" placeholder="멤버 이름 검색... (예: 김철수, ㄱㅊㅅ, ㄱ)" 
                                    class="w-full px-3 py-2 pl-9 text-sm bg-white/50 backdrop-blur-sm border border-white/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <span class="text-primary-400">🔍</span>
@@ -2049,12 +2049,12 @@
         function applyAdvancedFilters(membersList) {
             let filtered = [...membersList];
             
-            // 검색 필터
-            const searchTerm = document.getElementById('memberSearch')?.value.toLowerCase().trim();
+            // 검색 필터 (초성 검색 지원)
+            const searchTerm = document.getElementById('memberSearch')?.value.trim();
             if (searchTerm) {
                 filtered = filtered.filter(member => 
-                    (member.name && member.name.toLowerCase().includes(searchTerm)) ||
-                    (member.nickname && member.nickname.toLowerCase().includes(searchTerm))
+                    matchesKoreanSearch(member.name || '', searchTerm) ||
+                    matchesKoreanSearch(member.nickname || '', searchTerm)
                 );
             }
             
@@ -3043,12 +3043,22 @@
                     
                     allMemberCards.forEach(card => {
                         const memberName = card.dataset.memberName || '';
-                        const shouldShow = memberName.includes(searchTerm.toLowerCase());
+                        const displayName = card.querySelector('.font-bold')?.textContent || '';
+                        
+                        // 개선된 검색: 초성 검색 + 일반 검색
+                        const shouldShow = searchTerm === '' || 
+                                         matchesKoreanSearch(memberName, searchTerm) || 
+                                         matchesKoreanSearch(displayName, searchTerm);
                         
                         if (shouldShow) {
                             card.style.display = 'block';
                         } else {
                             card.style.display = 'none';
+                        }
+                        
+                        // 디버깅을 위한 로그 (개발 중에만)
+                        if (searchTerm) {
+                            console.log(`🔍 검색: "${searchTerm}" vs "${displayName}" = ${shouldShow}`);
                         }
                     });
                 }
@@ -3096,6 +3106,27 @@
             
             // 초기 멤버 목록 렌더링
             renderMemberList();
+            
+            // 🔥 중요: 해당 날짜의 기존 활동 데이터 로드
+            const existingActivity = activities[dateStr] || {};
+            console.log(`📊 ${dateStr} 기존 활동 데이터 로드:`, existingActivity);
+            
+            // 체크박스 상태를 기존 데이터에 맞게 설정
+            document.querySelectorAll('.workout-checkbox').forEach(cb => {
+                const isChecked = existingActivity.workout && existingActivity.workout.includes(cb.value);
+                cb.checked = isChecked;
+                console.log(`🏋️ 운동 체크박스 ${cb.value}: ${isChecked}`);
+            });
+            
+            document.querySelectorAll('.meeting-checkbox').forEach(cb => {
+                const isChecked = existingActivity.meeting && existingActivity.meeting.includes(cb.value);
+                cb.checked = isChecked;
+                console.log(`🤝 벙 체크박스 ${cb.value}: ${isChecked}`);
+            });
+            
+            // 카운트 및 참여율 업데이트
+            updateActivityCounts();
+            updateAttendanceRates();
             
             // 검색 이벤트 리스너 추가
             searchInput.addEventListener('input', (e) => {
@@ -3418,6 +3449,54 @@
             
             updateActivityCounts();
             updateAttendanceRates();
+        }
+
+        // 한국어 초성 추출 함수
+        function getKoreanInitials(text) {
+            const initials = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+            let result = '';
+            
+            for (let i = 0; i < text.length; i++) {
+                const charCode = text.charCodeAt(i);
+                // 한글 유니코드 범위 (가-힣)
+                if (charCode >= 0xAC00 && charCode <= 0xD7A3) {
+                    const initialIndex = Math.floor((charCode - 0xAC00) / (21 * 28));
+                    result += initials[initialIndex];
+                } else {
+                    // 한글이 아닌 문자는 그대로 추가
+                    result += text[i];
+                }
+            }
+            
+            return result;
+        }
+        
+        // 한국어 검색 매칭 함수 (초성 + 일반 검색)
+        function matchesKoreanSearch(text, searchTerm) {
+            if (!text || !searchTerm) return false;
+            
+            const normalizedText = text.toLowerCase();
+            const normalizedSearch = searchTerm.toLowerCase();
+            
+            // 1. 일반 텍스트 검색
+            if (normalizedText.includes(normalizedSearch)) {
+                return true;
+            }
+            
+            // 2. 초성 검색
+            const textInitials = getKoreanInitials(text);
+            const searchInitials = getKoreanInitials(searchTerm);
+            
+            // 검색어가 순수 초성인지 확인 (ㄱ, ㄴ, ㄷ 등)
+            const isOnlyInitials = /^[ㄱ-ㅎ]+$/.test(searchTerm);
+            
+            if (isOnlyInitials) {
+                // 순수 초성 검색: 텍스트의 초성이 검색어로 시작하는지 확인
+                return textInitials.toLowerCase().startsWith(searchTerm.toLowerCase());
+            } else {
+                // 혼합 검색: 초성이 포함되어 있는지 확인
+                return textInitials.toLowerCase().includes(searchInitials.toLowerCase());
+            }
         }
 
         // 메시지 표시 유틸리티
