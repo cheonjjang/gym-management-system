@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>원주인증소통방 관리시스템</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -675,13 +674,102 @@
                                     </button>
                                 </div>
                                 
-                                <!-- 랭킹 기간 선택 -->
-                                <select id="rankingPeriod" class="input-field w-full px-3 py-2 rounded-lg text-xs font-medium focus:outline-none">
-                                    <option value="week">📅 이번주</option>
-                                    <option value="month">📅 이번달</option>
-                                    <!-- 과거 월들이 동적으로 추가됩니다 -->
-                                    <option value="all" selected>📅 전체기간</option>
-                                </select>
+                                <!-- 클릭형 날짜 선택 시스템 -->
+                                <div class="space-y-2">
+                                    <!-- 현재 날짜 표시 (클릭 가능) -->
+                                    <div id="dateDisplayBtn" class="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-4 cursor-pointer hover:from-blue-100 hover:to-indigo-100 hover:border-blue-300 transition-all duration-200 shadow-sm hover:shadow-md">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center space-x-3">
+                                                <div class="bg-blue-500 rounded-full p-2">
+                                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                                    </svg>
+                                                </div>
+                                                <div>
+                                                    <div class="text-lg font-bold text-gray-800" id="currentDateDisplay">
+                                                        2025.10.15
+                                                    </div>
+                                                    <div class="text-xs text-blue-600 font-medium">
+                                                        기간 선택
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="text-blue-400">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 날짜 선택 드롭다운 (숨겨짐) -->
+                                    <div id="datePickerDropdown" class="hidden bg-white border-2 border-gray-300 rounded-lg p-3 space-y-3 shadow-lg">
+                                        <!-- 년도 선택 -->
+                                        <div>
+                                            <label class="block text-xs font-medium text-gray-700 mb-2">년도 선택:</label>
+                                            <select id="yearPicker" class="w-full px-3 py-2 rounded-lg text-sm bg-white text-gray-800 border border-gray-300 focus:outline-none focus:border-blue-500">
+                                                <!-- 년도 옵션들이 동적으로 추가됩니다 -->
+                                            </select>
+                                        </div>
+                                        
+                                        <!-- 월 선택 -->
+                                        <div>
+                                            <label class="block text-xs font-medium text-gray-700 mb-2">월 선택:</label>
+                                            <select id="monthPicker" class="w-full px-3 py-2 rounded-lg text-sm bg-white text-gray-800 border border-gray-300 focus:outline-none focus:border-blue-500">
+                                                <!-- 월 옵션들이 동적으로 추가됩니다 -->
+                                            </select>
+                                        </div>
+                                        
+                        <!-- 기간 타입 선택 -->
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 mb-2">조회 범위:</label>
+                            <div class="grid grid-cols-3 gap-2">
+                                <button id="weekRangeBtn" class="px-3 py-2 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600 transition-colors">
+                                    주간
+                                </button>
+                                <button id="monthRangeBtn" class="px-3 py-2 bg-green-500 text-white text-xs rounded-lg hover:bg-green-600 transition-colors">
+                                    월간
+                                </button>
+                                <button id="allRangeBtn" class="px-3 py-2 bg-purple-500 text-white text-xs rounded-lg hover:bg-purple-600 transition-colors">
+                                    전체
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- 주간 선택 시 상세 옵션 -->
+                        <div id="weekDetailContainer" class="hidden">
+                            <label class="block text-xs font-medium text-gray-700 mb-2">주차 선택:</label>
+                            <div class="grid grid-cols-2 gap-2" id="weekOptionsContainer">
+                                <!-- 주차 옵션들이 동적으로 생성됩니다 -->
+                            </div>
+                        </div>
+                                        
+                                        <!-- 적용/취소 버튼 -->
+                                        <div class="flex gap-2">
+                                            <button id="applyDateBtn" class="flex-1 px-3 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs font-medium rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all">
+                                                ✅ 적용
+                                            </button>
+                                            <button id="cancelDateBtn" class="flex-1 px-3 py-2 bg-gray-600 text-white text-xs font-medium rounded-lg hover:bg-gray-700 transition-all">
+                                                ❌ 취소
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 기존 호환성을 위한 숨겨진 select -->
+                                    <select id="rankingPeriod" class="hidden">
+                                        <option value="week">📅 이번주</option>
+                                        <option value="month">📅 이번달</option>
+                                        <option value="all" selected>📅 전체기간</option>
+                                    </select>
+                                    
+                                    <!-- 현재 선택된 기간 표시 -->
+                                    <div class="text-sm font-medium text-center bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg py-3 px-4 shadow-sm" id="currentPeriodDisplay">
+                                        <div class="flex items-center justify-center space-x-2">
+                                            <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                            <span class="text-green-700">📅 전체기간</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             
                             <!-- 랭킹 목록 -->
@@ -1615,7 +1703,7 @@
             }
 
             // 랭킹 기간 옵션 초기화
-            initializeRankingPeriodOptions();
+            initializeAdvancedDatePicker();
 
             // 데이터 로드
             loadData();
@@ -2233,10 +2321,12 @@
 
         // 현재 선택된 랭킹 타입
         let currentRankingType = 'total';
+        window.currentRankingType = 'total'; // 전역 변수로도 설정
         
         // 랭킹 탭 전환
         function switchRankingTab(type) {
             currentRankingType = type;
+            window.currentRankingType = type; // 전역 변수로도 설정
             
             // 탭 스타일 업데이트
             document.querySelectorAll('.ranking-tab, .ranking-tab-active').forEach(tab => {
@@ -2252,137 +2342,1148 @@
             renderAttendanceRanking();
         }
 
-        // 출석 랭킹 렌더링 (새로운 기능)
+        // 랭킹 업데이트 (새로운 날짜 선택 시스템 지원)
+        function updateRanking() {
+            console.log('🔄 랭킹 업데이트 시작:', currentRankingPeriod);
+            renderAttendanceRanking();
+        }
+        
+        // 출석 랭킹 렌더링 (기존 호환성 유지)
         function renderAttendanceRanking() {
             const rankingContainer = document.getElementById('attendanceRanking');
-            const period = document.getElementById('rankingPeriod')?.value || 'all'; // 기본값을 'all'로 변경
+            const period = document.getElementById('rankingPeriod')?.value || 'all';
             
-            if (!rankingContainer) return;
-            
-            const rankings = calculateAttendanceRanking(period, currentRankingType);
-            
-            rankingContainer.innerHTML = '';
-            
-            if (rankings.length === 0) {
-                rankingContainer.innerHTML = `
-                    <div class="text-center py-4 text-primary-500 text-xs">
-                        📊 멤버 데이터가 없습니다<br>
-                        <span class="text-xs">멤버를 추가해주세요!</span>
-                    </div>
-                `;
+            if (!rankingContainer) {
+                console.error('❌ attendanceRanking 컨테이너를 찾을 수 없습니다');
                 return;
             }
             
-            rankings.forEach((member, index) => {
-                const rankElement = document.createElement('div');
-                const isTop3 = index < 3;
-                const medalEmoji = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}`;
+            console.log('🔄 랭킹 렌더링 시작:', { period, currentRankingType });
+            console.log('👥 현재 멤버 데이터:', members);
+            console.log('📊 현재 활동 데이터:', activities);
+            
+            // 간단한 랭킹 표시
+            rankingContainer.innerHTML = '';
+            
+            // 실제 저장된 데이터 확인 및 로드
+            if (!members || members.length === 0) {
+                console.warn('⚠️ 멤버 데이터가 없습니다. 로컬 데이터를 확인합니다.');
                 
-                rankElement.className = `ranking-item ${isTop3 ? 'bg-gradient-to-r from-pastel-yellow to-pastel-peach' : 'bg-white/30'} p-2 rounded-lg transition-all hover:shadow-soft`;
-                
-                // 랭킹 타입에 따른 정보 표시
-                let detailInfo = '';
-                let mainStat = '';
-                let subStat = '';
-                
-                if (currentRankingType === 'total') {
-                    detailInfo = `운동 ${member.workoutCount}회 | 벙 ${member.meetingCount}회`;
-                    mainStat = `${member.totalActivities}회`;
-                    subStat = `${member.rate}%`;
-                } else if (currentRankingType === 'workout') {
-                    detailInfo = `총 운동 참여`;
-                    mainStat = `${member.workoutCount}회`;
-                    subStat = `${member.workoutRate || 0}%`;
-                } else if (currentRankingType === 'meeting') {
-                    detailInfo = `총 벙 참여`;
-                    mainStat = `${member.meetingCount}회`;
-                    subStat = `${member.meetingRate || 0}%`;
+                // 로컬 스토리지에서 멤버 데이터 로드
+                const savedMembers = localStorage.getItem('localMembers');
+                if (savedMembers) {
+                    window.members = JSON.parse(savedMembers);
+                    console.log('✅ 로컬 멤버 데이터 로드:', members.length + '명');
+                } else {
+                    // 기본 관리자만 생성
+                    window.members = [
+                        { id: '서아', name: '서아', nickname: '서아', role: 'super_admin', isActive: true }
+                    ];
+                    console.log('✅ 기본 관리자 데이터 생성');
                 }
+            }
+            
+            // 실제 활동 데이터 로드
+            if (!activities || Object.keys(activities).length === 0) {
+                console.warn('⚠️ 활동 데이터가 없습니다. 로컬 데이터를 확인합니다.');
                 
-                rankElement.innerHTML = `
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-2">
-                            <span class="text-sm font-bold ${isTop3 ? 'text-primary-800' : 'text-primary-600'}">${medalEmoji}</span>
-                            <div>
-                                <div class="text-xs font-semibold text-primary-800">${member.name}</div>
-                                <div class="text-xs text-primary-600">
-                                    ${detailInfo}
+                // 로컬 스토리지에서 활동 데이터 로드
+                const savedActivities = localStorage.getItem('localActivities');
+                if (savedActivities) {
+                    window.activities = JSON.parse(savedActivities);
+                    console.log('✅ 로컬 활동 데이터 로드:', Object.keys(activities).length + '개 날짜');
+                } else {
+                    window.activities = {};
+                    console.log('✅ 빈 활동 데이터 초기화');
+                }
+            }
+            
+            console.log('📊 최종 로드된 데이터:');
+            console.log('👥 멤버:', members);
+            console.log('📅 활동:', activities);
+            
+            try {
+                // 간단한 랭킹 계산 - currentRankingPeriod 사용
+                const actualPeriod = currentRankingPeriod || period;
+                console.log('🔍 사용할 기간:', { actualPeriod, period, currentRankingPeriod });
+                
+                const rankings = calculateSimpleRanking(actualPeriod, currentRankingType);
+                console.log('📈 계산된 랭킹:', rankings);
+                
+                if (rankings && rankings.length > 0) {
+                    // 랭킹 표시
+                    rankings.forEach((member, index) => {
+                        const rankElement = document.createElement('div');
+                        const isTop3 = index < 3;
+                        const medalEmoji = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}`;
+                        
+                        rankElement.className = `ranking-item flex items-center justify-between p-2 rounded-lg ${
+                            isTop3 ? 'bg-gradient-to-r from-yellow-100 to-yellow-200 border border-yellow-300' : 'bg-gray-50 border border-gray-200'
+                        }`;
+                        
+                        rankElement.innerHTML = `
+                            <div class="flex items-center gap-2">
+                                <span class="text-lg font-bold ${isTop3 ? 'text-yellow-600' : 'text-gray-600'}">${medalEmoji}</span>
+                                <div>
+                                    <div class="font-semibold text-gray-800">${member.nickname || member.name}</div>
+                                    <div class="text-xs text-gray-500">
+                                        ${currentRankingType === 'total' ? `총 ${member.totalActivities}회` :
+                                          currentRankingType === 'workout' ? `운동 ${member.workoutCount}회` :
+                                          `벙 ${member.meetingCount}회`}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-xs font-bold text-primary-800">${mainStat}</div>
-                            <div class="text-xs text-primary-600">${subStat}</div>
-                        </div>
-                    </div>
-                `;
-                
-                // 클릭 시 해당 멤버 정보 표시
-                rankElement.addEventListener('click', () => {
-                    const memberData = members.find(m => m.id === member.id);
-                    if (memberData) {
-                        openMemberModal(memberData);
-                    }
-                });
-                
-                rankingContainer.appendChild(rankElement);
-            });
-        }
-
-        // 랭킹 기간 옵션 초기화 (과거 월 포함)
-        function initializeRankingPeriodOptions() {
-            const select = document.getElementById('rankingPeriod');
-            if (!select) return;
-            
-            // 기존 동적 옵션들 제거 (all 옵션 이전의 월별 옵션들)
-            const existingOptions = select.querySelectorAll('option[value^="2025-"]');
-            existingOptions.forEach(option => option.remove());
-            
-            // 현재 날짜 기준으로 과거 월들 생성
-            const now = new Date();
-            const currentYear = now.getFullYear();
-            const currentMonth = now.getMonth(); // 0-based (0=1월, 11=12월)
-            
-            // 과거 월들을 역순으로 추가 (최근 월부터)
-            const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
-            const allOptionIndex = Array.from(select.options).findIndex(option => option.value === 'all');
-            
-            for (let i = currentMonth - 1; i >= 0; i--) {
-                const option = document.createElement('option');
-                option.value = `${currentYear}-${String(i + 1).padStart(2, '0')}`;
-                option.textContent = `📅 ${monthNames[i]}`;
-                
-                // all 옵션 바로 앞에 삽입
-                select.insertBefore(option, select.options[allOptionIndex]);
-            }
-            
-            // 작년 월들도 추가 (12월부터 1월까지)
-            if (currentYear > 2025) {
-                for (let year = currentYear - 1; year >= 2025; year--) {
-                    for (let month = 11; month >= 0; month--) {
-                        const option = document.createElement('option');
-                        option.value = `${year}-${String(month + 1).padStart(2, '0')}`;
-                        option.textContent = `📅 ${year}년 ${monthNames[month]}`;
+                            <div class="text-right">
+                                <div class="text-sm font-bold text-gray-700">${member.rate}%</div>
+                            </div>
+                        `;
                         
-                        select.insertBefore(option, select.options[allOptionIndex]);
+                        rankingContainer.appendChild(rankElement);
+                    });
+                } else {
+                    // 랭킹이 없는 경우 - 멤버는 있지만 활동이 없음
+                    if (members && members.length > 0) {
+                        // 활동이 없는 멤버들도 0점으로 표시
+                        members.forEach((member, index) => {
+                            const rankElement = document.createElement('div');
+                            const medalEmoji = `${index + 1}`;
+                            
+                            rankElement.className = `ranking-item flex items-center justify-between p-2 rounded-lg bg-gray-50 border border-gray-200`;
+                            
+                            rankElement.innerHTML = `
+                                <div class="flex items-center gap-2">
+                                    <span class="text-lg font-bold text-gray-600">${medalEmoji}</span>
+                                    <div>
+                                        <div class="font-semibold text-gray-800">${member.nickname || member.name}</div>
+                                        <div class="text-xs text-gray-500">
+                                            ${currentRankingType === 'total' ? '총 0회' :
+                                              currentRankingType === 'workout' ? '운동 0회' :
+                                              '벙 0회'}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-sm font-bold text-gray-700">0%</div>
+                                </div>
+                            `;
+                            
+                            rankingContainer.appendChild(rankElement);
+                        });
+                    } else {
+                        rankingContainer.innerHTML = `
+                            <div class="text-center py-4 text-blue-500 text-xs">
+                                📊 선택한 기간에 활동 데이터가 없습니다<br>
+                                <span class="text-xs">캘린더에서 활동을 체크해보세요!</span>
+                            </div>
+                        `;
                     }
                 }
+            } catch (error) {
+                console.error('❌ 랭킹 계산 중 오류:', error);
+                
+                // 에러 발생 시 실제 멤버 데이터로 0점 표시
+                if (members && members.length > 0) {
+                    members.forEach((member, index) => {
+                        const rankElement = document.createElement('div');
+                        const medalEmoji = `${index + 1}`;
+                        
+                        rankElement.className = `ranking-item flex items-center justify-between p-2 rounded-lg bg-gray-50 border border-gray-200`;
+                        
+                        rankElement.innerHTML = `
+                            <div class="flex items-center gap-2">
+                                <span class="text-lg font-bold text-gray-600">${medalEmoji}</span>
+                                <div>
+                                    <div class="font-semibold text-gray-800">${member.nickname || member.name}</div>
+                                    <div class="text-xs text-red-500">
+                                        계산 오류 - 데이터를 확인해주세요
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-sm font-bold text-red-700">-</div>
+                            </div>
+                        `;
+                        
+                        rankingContainer.appendChild(rankElement);
+                    });
+                } else {
+                    rankingContainer.innerHTML = `
+                        <div class="text-center py-4 text-red-500 text-xs">
+                            ❌ 랭킹 계산 중 오류가 발생했습니다<br>
+                            <span class="text-xs">멤버를 추가하거나 페이지를 새로고침해주세요</span>
+                        </div>
+                    `;
+                }
             }
-            
-            console.log('📅 랭킹 기간 옵션 초기화 완료:', select.options.length + '개 옵션');
         }
 
-        // 출석 랭킹 계산
-        function calculateAttendanceRanking(period, rankingType = 'total') {
-            console.log('🔍 랭킹 계산 시작:', { period, rankingType, membersCount: members.length });
-            console.log('🔍 Activities 객체:', activities);
-            console.log('🔍 오늘 날짜:', new Date());
+        // 간단한 랭킹 계산 함수
+        function calculateSimpleRanking(period, rankingType = 'total') {
+            console.log('🔄 간단한 랭킹 계산 시작:', { period, rankingType });
+            
+            if (!members || members.length === 0) {
+                console.warn('⚠️ 멤버 데이터가 없습니다.');
+                return [];
+            }
+            
+            if (!activities) {
+                console.warn('⚠️ 활동 데이터가 없습니다.');
+                return [];
+            }
+            
+            // 날짜 범위 계산
             const now = new Date();
             let startDate, endDate;
             
-            switch (period) {
+            // 특정 주간 형식 (예: "week:2025-09-02:2025-09-08") 먼저 확인
+            if (typeof period === 'string' && period.startsWith('week:')) {
+                const [, startDateStr, endDateStr] = period.split(':');
+                startDate = new Date(startDateStr);
+                startDate.setHours(0, 0, 0, 0);
+                
+                endDate = new Date(endDateStr);
+                endDate.setHours(23, 59, 59, 999);
+                
+                console.log(`📅 특정 주간 선택: ${startDateStr} ~ ${endDateStr}`);
+            }
+            // 특정 월 형식 (예: "2025-09") 확인
+            else if (typeof period === 'string' && period.includes('-')) {
+                const [year, month] = period.split('-').map(Number);
+                startDate = new Date(year, month - 1, 1);
+                startDate.setHours(0, 0, 0, 0);
+                
+                endDate = new Date(year, month, 0);
+                endDate.setHours(23, 59, 59, 999);
+                
+                console.log(`📅 특정 월 선택: ${year}년 ${month}월`);
+            } else {
+                switch (period) {
+                    case 'week':
+                        // 이번주 (월요일 시작)
+                        startDate = new Date(now);
+                        const day = startDate.getDay();
+                        const daysToMonday = day === 0 ? 6 : day - 1;
+                        startDate.setDate(now.getDate() - daysToMonday);
+                        startDate.setHours(0, 0, 0, 0);
+                        
+                        endDate = new Date(startDate);
+                        endDate.setDate(startDate.getDate() + 6);
+                        endDate.setHours(23, 59, 59, 999);
+                        break;
+                        
+                    case 'month':
+                        // 이번달
+                        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+                        endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                        endDate.setHours(23, 59, 59, 999);
+                        break;
+                        
+                    case 'all':
+                    default:
+                        // 전체 기간 - 활동 데이터가 있는 모든 날짜
+                        const activityDates = Object.keys(activities);
+                        if (activityDates.length === 0) {
+                            console.warn('⚠️ 활동 날짜가 없습니다.');
+                            return [];
+                        }
+                        
+                        const dates = activityDates.map(date => new Date(date)).sort((a, b) => a - b);
+                        startDate = dates[0];
+                        endDate = dates[dates.length - 1];
+                        endDate.setHours(23, 59, 59, 999);
+                        break;
+                }
+            }
+            
+            console.log('📅 계산 기간:', {
+                start: startDate.toISOString().split('T')[0],
+                end: endDate.toISOString().split('T')[0]
+            });
+            
+            // 각 멤버의 활동 계산
+            const memberStats = members.map(member => {
+                let workoutCount = 0;
+                let meetingCount = 0;
+                
+                // 기간 내 모든 날짜 확인
+                for (const dateStr in activities) {
+                    const activityDate = new Date(dateStr);
+                    
+                    if (activityDate >= startDate && activityDate <= endDate) {
+                        const dayActivity = activities[dateStr];
+                        
+                        // 운동 참여 확인
+                        if (dayActivity.workout && dayActivity.workout.includes(member.id)) {
+                            workoutCount++;
+                        }
+                        
+                        // 벙 참여 확인
+                        if (dayActivity.meeting && dayActivity.meeting.includes(member.id)) {
+                            meetingCount++;
+                        }
+                    }
+                }
+                
+                const totalActivities = workoutCount + meetingCount;
+                
+                // 기간 내 총 가능한 활동 수 계산 (대략적)
+                const daysDiff = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+                const maxPossible = daysDiff * 2; // 하루에 운동 1회 + 벙 1회 가능
+                const rate = maxPossible > 0 ? Math.round((totalActivities / maxPossible) * 100) : 0;
+                
+                return {
+                    id: member.id,
+                    name: member.name,
+                    nickname: member.nickname,
+                    role: member.role,
+                    workoutCount,
+                    meetingCount,
+                    totalActivities,
+                    rate: Math.min(rate, 100) // 100% 초과 방지
+                };
+            });
+            
+            // 랭킹 타입에 따라 정렬
+            let sortedStats;
+            if (rankingType === 'workout') {
+                sortedStats = memberStats.sort((a, b) => b.workoutCount - a.workoutCount);
+            } else if (rankingType === 'meeting') {
+                sortedStats = memberStats.sort((a, b) => b.meetingCount - a.meetingCount);
+            } else {
+                // total
+                sortedStats = memberStats.sort((a, b) => b.totalActivities - a.totalActivities);
+            }
+            
+            console.log('📊 계산된 멤버 통계:', sortedStats);
+            
+            return sortedStats;
+        }
+
+        // 클릭형 날짜 선택 시스템 초기화
+        function initializeAdvancedDatePicker() {
+            console.log('📅 클릭형 날짜 선택기 초기화 시작');
+            
+            // 현재 날짜로 초기화
+            initializeDatePickers();
+            
+            // 이벤트 리스너 등록
+            setupClickableDatePickerEventListeners();
+            
+            // 기본값으로 전체기간 설정
+            currentRankingPeriod = 'all';
+            updateCurrentPeriodDisplay('📅 전체기간');
+            
+            // 기존 랭킹 렌더링
+            renderAttendanceRanking();
+            
+            console.log('📅 클릭형 날짜 선택기 초기화 완료');
+        }
+        
+        // 날짜 선택기 초기화
+        function initializeDatePickers() {
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const currentMonth = now.getMonth() + 1; // 1-based
+            const currentDate = now.getDate();
+            
+            // 현재 날짜 표시 업데이트
+            updateDateDisplay(currentYear, currentMonth, currentDate);
+            
+            // 년도 옵션 초기화
+            initializeYearPicker(currentYear);
+            
+            // 월 옵션 초기화
+            initializeMonthPicker(currentMonth);
+        }
+        
+        // 년도 선택기 초기화 (더 넓은 범위)
+        function initializeYearPicker(selectedYear = null) {
+            const yearPicker = document.getElementById('yearPicker');
+            if (!yearPicker) return;
+            
+            yearPicker.innerHTML = '';
+            
+            const currentYear = new Date().getFullYear();
+            
+            // 2020년부터 2030년까지 (더 넓은 범위로 과거/미래 데이터 지원)
+            for (let year = 2030; year >= 2020; year--) {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = `${year}년`;
+                if (year === selectedYear || (selectedYear === null && year === currentYear)) {
+                    option.selected = true;
+                }
+                yearPicker.appendChild(option);
+            }
+            
+            console.log(`📅 년도 피커 초기화: 2020~2030년, 선택: ${selectedYear || currentYear}년`);
+        }
+        
+        // 월 선택기 초기화
+        function initializeMonthPicker(selectedMonth = null) {
+            const monthPicker = document.getElementById('monthPicker');
+            if (!monthPicker) return;
+            
+            monthPicker.innerHTML = '';
+            
+            const currentMonth = new Date().getMonth() + 1;
+            const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+            
+            for (let month = 1; month <= 12; month++) {
+                const option = document.createElement('option');
+                option.value = month;
+                option.textContent = monthNames[month - 1];
+                if (month === selectedMonth || (selectedMonth === null && month === currentMonth)) {
+                    option.selected = true;
+                }
+                monthPicker.appendChild(option);
+            }
+            
+            console.log(`📅 월 피커 초기화: 1~12월, 선택: ${selectedMonth || currentMonth}월`);
+        }
+        
+        // 날짜 표시 업데이트
+        function updateDateDisplay(year, month, date) {
+            const dateDisplay = document.getElementById('currentDateDisplay');
+            if (dateDisplay) {
+                const formattedDate = `${year}.${String(month).padStart(2, '0')}.${String(date).padStart(2, '0')}`;
+                dateDisplay.textContent = formattedDate;
+            }
+        }
+        
+        // 특정 월의 주차 옵션 생성
+        function generateWeekOptions(year, month) {
+            const container = document.getElementById('weekOptionsContainer');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            // 해당 월의 첫째 날과 마지막 날
+            const firstDay = new Date(year, month - 1, 1);
+            const lastDay = new Date(year, month, 0);
+            
+            // 첫째 주 시작일 (월요일 기준)
+            const firstMonday = new Date(firstDay);
+            const dayOfWeek = firstDay.getDay();
+            const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+            firstMonday.setDate(firstDay.getDate() - daysToMonday);
+            
+            const weeks = [];
+            let currentWeekStart = new Date(firstMonday);
+            
+            // 해당 월에 포함되는 주차들 계산
+            while (currentWeekStart <= lastDay) {
+                const weekEnd = new Date(currentWeekStart);
+                weekEnd.setDate(currentWeekStart.getDate() + 6);
+                
+                // 이 주가 해당 월과 겹치는지 확인
+                if (currentWeekStart <= lastDay && weekEnd >= firstDay) {
+                    weeks.push({
+                        start: new Date(currentWeekStart),
+                        end: new Date(weekEnd),
+                        weekNumber: weeks.length + 1
+                    });
+                }
+                
+                currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+            }
+            
+            // 주차 버튼 생성
+            weeks.forEach((week, index) => {
+                const button = document.createElement('button');
+                
+                // 월 경계 주차인지 확인
+                const weekStart = week.start;
+                const weekEnd = week.end;
+                const isPartial = weekStart < firstDay || weekEnd > lastDay;
+                
+                // 부분 주차면 다른 스타일 적용
+                if (isPartial) {
+                    button.className = 'px-3 py-2 bg-orange-100 text-orange-800 text-xs rounded-lg hover:bg-orange-200 transition-colors border border-orange-300';
+                    
+                    // 해당 월에 포함되는 일수 계산
+                    const weekStartInMonth = weekStart < firstDay ? firstDay : weekStart;
+                    const weekEndInMonth = weekEnd > lastDay ? lastDay : weekEnd;
+                    const daysInMonth = Math.floor((weekEndInMonth - weekStartInMonth) / (1000 * 60 * 60 * 24)) + 1;
+                    
+                    button.textContent = `${week.weekNumber}째주 (${daysInMonth}일)`;
+                    button.title = `${weekStart.toISOString().split('T')[0]} ~ ${weekEnd.toISOString().split('T')[0]} (이 월에 ${daysInMonth}일만 포함)`;
+                } else {
+                    button.className = 'px-3 py-2 bg-blue-100 text-blue-800 text-xs rounded-lg hover:bg-blue-200 transition-colors border border-blue-300';
+                    button.textContent = `${week.weekNumber}째주`;
+                    button.title = `${weekStart.toISOString().split('T')[0]} ~ ${weekEnd.toISOString().split('T')[0]} (전체 포함)`;
+                }
+                
+                button.dataset.weekStart = weekStart.toISOString().split('T')[0];
+                button.dataset.weekEnd = weekEnd.toISOString().split('T')[0];
+                button.dataset.weekNumber = week.weekNumber;
+                
+                // 클릭 이벤트
+                button.addEventListener('click', () => {
+                    // 다른 주차 버튼 비활성화
+                    container.querySelectorAll('button').forEach(btn => {
+                        btn.classList.remove('bg-yellow-500', 'text-white');
+                        btn.classList.add('bg-blue-100', 'text-blue-800');
+                    });
+                    
+                    // 선택된 버튼 활성화
+                    button.classList.remove('bg-blue-100', 'text-blue-800');
+                    button.classList.add('bg-yellow-500', 'text-white');
+                    
+                    // 선택된 주차 정보 저장
+                    window.selectedWeekInfo = {
+                        start: week.start.toISOString().split('T')[0],
+                        end: week.end.toISOString().split('T')[0],
+                        weekNumber: week.weekNumber,
+                        year: year,
+                        month: month
+                    };
+                    
+                    console.log('선택된 주차:', window.selectedWeekInfo);
+                });
+                
+                container.appendChild(button);
+            });
+            
+            console.log(`📅 ${year}년 ${month}월 주차 생성 완료:`, weeks.length + '개 주차');
+        }
+        
+        // 날짜 계산 정확성 테스트 함수
+        function testDateCalculations() {
+            console.log('🧪 날짜 계산 정확성 테스트 시작');
+            
+            // 테스트 케이스들
+            const testCases = [
+                { year: 2024, month: 2 }, // 윤년 2월
+                { year: 2025, month: 2 }, // 평년 2월  
+                { year: 2025, month: 9 }, // 9월
+                { year: 2025, month: 12 }, // 12월
+                { year: 2024, month: 12 }, // 전년도 12월
+            ];
+            
+            testCases.forEach(({ year, month }) => {
+                console.log(`\n📅 ${year}년 ${month}월 테스트:`);
+                
+                // 월 시작일/종료일 계산
+                const monthStart = new Date(year, month - 1, 1);
+                const monthEnd = new Date(year, month, 0);
+                
+                console.log(`  월 범위: ${monthStart.toISOString().split('T')[0]} ~ ${monthEnd.toISOString().split('T')[0]}`);
+                console.log(`  총 일수: ${monthEnd.getDate()}일`);
+                
+                // 주차 계산
+                const firstDay = new Date(year, month - 1, 1);
+                const lastDay = new Date(year, month, 0);
+                
+                const firstMonday = new Date(firstDay);
+                const dayOfWeek = firstDay.getDay();
+                const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+                firstMonday.setDate(firstDay.getDate() - daysToMonday);
+                
+                const weeks = [];
+                let currentWeekStart = new Date(firstMonday);
+                
+                while (currentWeekStart <= lastDay) {
+                    const weekEnd = new Date(currentWeekStart);
+                    weekEnd.setDate(currentWeekStart.getDate() + 6);
+                    
+                    if (currentWeekStart <= lastDay && weekEnd >= firstDay) {
+                        weeks.push({
+                            start: currentWeekStart.toISOString().split('T')[0],
+                            end: weekEnd.toISOString().split('T')[0],
+                            weekNumber: weeks.length + 1
+                        });
+                    }
+                    
+                    currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+                }
+                
+                console.log(`  주차 수: ${weeks.length}개`);
+                weeks.forEach(week => {
+                    console.log(`    ${week.weekNumber}째주: ${week.start} ~ ${week.end}`);
+                });
+            });
+            
+            console.log('\n🧪 날짜 계산 테스트 완료');
+        }
+        
+        // 전역 함수로 노출 (콘솔에서 테스트 가능)
+        window.testDateCalculations = testDateCalculations;
+        
+        // 활동 데이터 필터링 정확성 테스트
+        function testActivityFiltering(testPeriod) {
+            console.log(`🔍 활동 필터링 테스트: ${testPeriod}`);
+            
+            if (!window.activities) {
+                console.warn('활동 데이터가 없습니다.');
+                return;
+            }
+            
+            const activities = window.activities;
+            const activityDates = Object.keys(activities);
+            
+            console.log(`전체 활동 날짜 수: ${activityDates.length}개`);
+            console.log('활동 날짜들:', activityDates.sort());
+            
+            // 테스트 기간에 해당하는 활동만 필터링
+            let startDate, endDate;
+            
+            if (testPeriod.startsWith('week:')) {
+                const [, startDateStr, endDateStr] = testPeriod.split(':');
+                startDate = new Date(startDateStr);
+                endDate = new Date(endDateStr);
+            } else if (testPeriod.includes('-')) {
+                const [year, month] = testPeriod.split('-').map(Number);
+                startDate = new Date(year, month - 1, 1);
+                endDate = new Date(year, month, 0);
+            }
+            
+            if (startDate && endDate) {
+                console.log(`필터 기간: ${startDate.toISOString().split('T')[0]} ~ ${endDate.toISOString().split('T')[0]}`);
+                
+                const filteredDates = activityDates.filter(dateStr => {
+                    const activityDate = new Date(dateStr);
+                    return activityDate >= startDate && activityDate <= endDate;
+                });
+                
+                console.log(`필터된 활동 날짜: ${filteredDates.length}개`);
+                console.log('필터된 날짜들:', filteredDates.sort());
+                
+                // 각 날짜별 활동 상세
+                filteredDates.forEach(dateStr => {
+                    const dayActivities = activities[dateStr];
+                    const memberCount = Object.keys(dayActivities).length;
+                    console.log(`  ${dateStr}: ${memberCount}명 활동`);
+                });
+            }
+        }
+        
+        // 전역 함수로 노출 (콘솔에서 테스트 가능)
+        window.testActivityFiltering = testActivityFiltering;
+        
+        // 월 경계 주차 테스트 함수
+        function testMonthBoundaryWeeks() {
+            console.log('🔍 월 경계 주차 테스트 시작');
+            
+            // 2025년 9월-10월 경계 테스트
+            const testCases = [
+                { year: 2025, month: 9, name: '9월' },
+                { year: 2025, month: 10, name: '10월' },
+            ];
+            
+            testCases.forEach(({ year, month, name }) => {
+                console.log(`\n📅 ${name} (${year}년 ${month}월) 주차 분석:`);
+                
+                const firstDay = new Date(year, month - 1, 1);
+                const lastDay = new Date(year, month, 0);
+                
+                console.log(`  월 범위: ${firstDay.toISOString().split('T')[0]} ~ ${lastDay.toISOString().split('T')[0]}`);
+                console.log(`  첫날 요일: ${['일', '월', '화', '수', '목', '금', '토'][firstDay.getDay()]}`);
+                console.log(`  마지막날 요일: ${['일', '월', '화', '수', '목', '금', '토'][lastDay.getDay()]}`);
+                
+                // 주차 계산
+                const firstMonday = new Date(firstDay);
+                const dayOfWeek = firstDay.getDay();
+                const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+                firstMonday.setDate(firstDay.getDate() - daysToMonday);
+                
+                const weeks = [];
+                let currentWeekStart = new Date(firstMonday);
+                
+                while (currentWeekStart <= lastDay) {
+                    const weekEnd = new Date(currentWeekStart);
+                    weekEnd.setDate(currentWeekStart.getDate() + 6);
+                    
+                    if (currentWeekStart <= lastDay && weekEnd >= firstDay) {
+                        // 이 주가 해당 월에 몇 일이나 포함되는지 계산
+                        const weekStartInMonth = currentWeekStart < firstDay ? firstDay : currentWeekStart;
+                        const weekEndInMonth = weekEnd > lastDay ? lastDay : weekEnd;
+                        
+                        const daysInMonth = Math.floor((weekEndInMonth - weekStartInMonth) / (1000 * 60 * 60 * 24)) + 1;
+                        
+                        weeks.push({
+                            start: currentWeekStart.toISOString().split('T')[0],
+                            end: weekEnd.toISOString().split('T')[0],
+                            weekNumber: weeks.length + 1,
+                            daysInThisMonth: daysInMonth,
+                            isPartial: currentWeekStart < firstDay || weekEnd > lastDay
+                        });
+                    }
+                    
+                    currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+                }
+                
+                console.log(`  총 주차: ${weeks.length}개`);
+                weeks.forEach(week => {
+                    const partialText = week.isPartial ? ` (${week.daysInThisMonth}일만 포함)` : ' (전체 포함)';
+                    console.log(`    ${week.weekNumber}째주: ${week.start} ~ ${week.end}${partialText}`);
+                });
+            });
+            
+            console.log('\n🔍 월 경계 주차 테스트 완료');
+        }
+        
+        // 전역 함수로 노출
+        window.testMonthBoundaryWeeks = testMonthBoundaryWeeks;
+        
+        // 년도 옵션 초기화
+        function initializeYearOptions() {
+            const yearSelect = document.getElementById('yearSelect');
+            if (!yearSelect) return;
+            
+            const currentYear = new Date().getFullYear();
+            const startYear = 2025;
+            
+            // 년도 옵션 추가 (현재년도부터 2025년까지)
+            for (let year = currentYear; year >= startYear; year--) {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = `${year}년`;
+                yearSelect.appendChild(option);
+            }
+        }
+        
+        // 월 옵션 초기화
+        function initializeMonthOptions(year) {
+            const monthSelect = document.getElementById('monthSelect');
+            if (!monthSelect) return;
+            
+            monthSelect.innerHTML = '';
+            monthSelect.disabled = false;
+            
+            const currentYear = new Date().getFullYear();
+            const currentMonth = new Date().getMonth(); // 0-based
+            const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+            
+            // 선택된 년도에 따라 월 옵션 생성
+            const maxMonth = (year == currentYear) ? currentMonth : 11;
+            
+            for (let month = 0; month <= maxMonth; month++) {
+                const option = document.createElement('option');
+                option.value = month + 1;
+                option.textContent = monthNames[month];
+                monthSelect.appendChild(option);
+            }
+        }
+        
+        // 달력 생성 (주/일 선택용)
+        function generateCalendar(year, month, containerId, selectionType = 'week') {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            // 요일 헤더 추가
+            const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+            weekdays.forEach(day => {
+                const dayHeader = document.createElement('div');
+                dayHeader.className = 'text-center font-medium text-white/60 p-1';
+                dayHeader.textContent = day;
+                container.appendChild(dayHeader);
+            });
+            
+            // 해당 월의 첫째 날과 마지막 날
+            const firstDay = new Date(year, month - 1, 1);
+            const lastDay = new Date(year, month, 0);
+            const startDate = new Date(firstDay);
+            startDate.setDate(startDate.getDate() - firstDay.getDay()); // 달력 시작일 (이전 월 포함)
+            
+            // 6주 분량의 날짜 생성
+            for (let i = 0; i < 42; i++) {
+                const currentDate = new Date(startDate);
+                currentDate.setDate(startDate.getDate() + i);
+                
+                const dayElement = document.createElement('div');
+                dayElement.className = `text-center p-1 cursor-pointer rounded transition-colors ${
+                    currentDate.getMonth() === month - 1 
+                        ? 'text-white hover:bg-white/20' 
+                        : 'text-white/30'
+                }`;
+                dayElement.textContent = currentDate.getDate();
+                dayElement.dataset.date = currentDate.toISOString().split('T')[0];
+                
+                // 드래그 선택 이벤트 (주 선택용)
+                if (selectionType === 'week') {
+                    setupWeekDragSelection(dayElement);
+                } else {
+                    setupDaySelection(dayElement);
+                }
+                
+                container.appendChild(dayElement);
+            }
+        }
+        
+        // 주 드래그 선택 설정
+        function setupWeekDragSelection(dayElement) {
+            let isSelecting = false;
+            let startElement = null;
+            
+            dayElement.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                isSelecting = true;
+                startElement = dayElement;
+                clearWeekSelection();
+                dayElement.classList.add('bg-blue-500', 'text-white');
+            });
+            
+            dayElement.addEventListener('mouseenter', () => {
+                if (isSelecting && startElement) {
+                    clearWeekSelection();
+                    selectWeekRange(startElement, dayElement);
+                }
+            });
+            
+            dayElement.addEventListener('mouseup', () => {
+                if (isSelecting) {
+                    isSelecting = false;
+                    updateSelectedWeekRange();
+                }
+            });
+        }
+        
+        // 일 선택 설정
+        function setupDaySelection(dayElement) {
+            dayElement.addEventListener('click', () => {
+                // 기존 선택 해제
+                const container = dayElement.parentElement;
+                container.querySelectorAll('.bg-green-500').forEach(el => {
+                    el.classList.remove('bg-green-500', 'text-white');
+                });
+                
+                // 새로운 선택
+                dayElement.classList.add('bg-green-500', 'text-white');
+                updateSelectedDayRange(dayElement.dataset.date);
+            });
+        }
+        
+        // 주 선택 범위 클리어
+        function clearWeekSelection() {
+            const weekCalendar = document.getElementById('weekCalendar');
+            if (weekCalendar) {
+                weekCalendar.querySelectorAll('.bg-blue-500').forEach(el => {
+                    el.classList.remove('bg-blue-500', 'text-white');
+                });
+            }
+        }
+        
+        // 주 범위 선택
+        function selectWeekRange(startElement, endElement) {
+            const container = startElement.parentElement;
+            const allDays = Array.from(container.children).slice(7); // 요일 헤더 제외
+            
+            const startIndex = allDays.indexOf(startElement);
+            const endIndex = allDays.indexOf(endElement);
+            
+            const minIndex = Math.min(startIndex, endIndex);
+            const maxIndex = Math.max(startIndex, endIndex);
+            
+            for (let i = minIndex; i <= maxIndex; i++) {
+                allDays[i].classList.add('bg-blue-500', 'text-white');
+            }
+        }
+        
+        // 선택된 주 범위 업데이트
+        function updateSelectedWeekRange() {
+            const selectedDays = document.querySelectorAll('#weekCalendar .bg-blue-500');
+            if (selectedDays.length > 0) {
+                const startDate = selectedDays[0].dataset.date;
+                const endDate = selectedDays[selectedDays.length - 1].dataset.date;
+                
+                const startDateObj = new Date(startDate);
+                const endDateObj = new Date(endDate);
+                
+                const rangeText = `${startDateObj.getMonth() + 1}/${startDateObj.getDate()} ~ ${endDateObj.getMonth() + 1}/${endDateObj.getDate()}`;
+                document.getElementById('selectedWeekRange').textContent = `선택된 기간: ${rangeText}`;
+                
+                // 전역 변수에 저장
+                window.selectedWeekRange = { startDate, endDate };
+            }
+        }
+        
+        // 선택된 일 범위 업데이트
+        function updateSelectedDayRange(date) {
+            const dateObj = new Date(date);
+            const rangeText = `${dateObj.getMonth() + 1}/${dateObj.getDate()}`;
+            document.getElementById('selectedDayRange').textContent = `선택된 날짜: ${rangeText}`;
+            
+            // 전역 변수에 저장
+            window.selectedDayRange = { date };
+        }
+        
+        // 현재 기간 표시 업데이트
+        function updateCurrentPeriodDisplay(text) {
+            const display = document.getElementById('currentPeriodDisplay');
+            if (display) {
+                display.innerHTML = `
+                    <div class="flex items-center justify-center space-x-2">
+                        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <span class="text-green-700">${text}</span>
+                    </div>
+                `;
+            }
+        }
+        
+        // 클릭형 날짜 선택기 이벤트 리스너 설정
+        function setupClickableDatePickerEventListeners() {
+            console.log('📅 클릭형 이벤트 리스너 설정 시작');
+            
+            // 날짜 표시 클릭 시 드롭다운 토글
+            document.getElementById('dateDisplayBtn')?.addEventListener('click', () => {
+                console.log('날짜 표시 클릭');
+                const dropdown = document.getElementById('datePickerDropdown');
+                if (dropdown) {
+                    const isHidden = dropdown.classList.contains('hidden');
+                    if (isHidden) {
+                        dropdown.classList.remove('hidden');
+                    } else {
+                        dropdown.classList.add('hidden');
+                    }
+                }
+            });
+            
+            // 범위 선택 버튼들
+            let selectedRange = 'all';
+            
+            document.getElementById('weekRangeBtn')?.addEventListener('click', () => {
+                selectedRange = 'week';
+                updateRangeButtonStyles('weekRangeBtn');
+                
+                // 주차 선택 옵션 표시
+                const weekDetailContainer = document.getElementById('weekDetailContainer');
+                if (weekDetailContainer) {
+                    weekDetailContainer.classList.remove('hidden');
+                    
+                    // 현재 선택된 년월로 주차 생성
+                    const yearPicker = document.getElementById('yearPicker');
+                    const monthPicker = document.getElementById('monthPicker');
+                    if (yearPicker && monthPicker) {
+                        generateWeekOptions(parseInt(yearPicker.value), parseInt(monthPicker.value));
+                    }
+                }
+            });
+            
+            document.getElementById('monthRangeBtn')?.addEventListener('click', () => {
+                selectedRange = 'month';
+                updateRangeButtonStyles('monthRangeBtn');
+                
+                // 주차 선택 옵션 숨기기
+                const weekDetailContainer = document.getElementById('weekDetailContainer');
+                if (weekDetailContainer) {
+                    weekDetailContainer.classList.add('hidden');
+                }
+            });
+            
+            document.getElementById('allRangeBtn')?.addEventListener('click', () => {
+                selectedRange = 'all';
+                updateRangeButtonStyles('allRangeBtn');
+                
+                // 주차 선택 옵션 숨기기
+                const weekDetailContainer = document.getElementById('weekDetailContainer');
+                if (weekDetailContainer) {
+                    weekDetailContainer.classList.add('hidden');
+                }
+            });
+            
+            // 년도/월 변경 시 이벤트
+            document.getElementById('yearPicker')?.addEventListener('change', (e) => {
+                const selectedYear = parseInt(e.target.value);
+                initializeMonthPicker(selectedYear);
+                updateDateDisplay(selectedYear, 10, 15); // 임시로 10월 15일
+                
+                // 주간이 선택된 상태라면 주차 옵션 업데이트
+                if (selectedRange === 'week') {
+                    const monthPicker = document.getElementById('monthPicker');
+                    if (monthPicker) {
+                        generateWeekOptions(selectedYear, parseInt(monthPicker.value));
+                    }
+                }
+            });
+            
+            document.getElementById('monthPicker')?.addEventListener('change', (e) => {
+                const yearPicker = document.getElementById('yearPicker');
+                if (yearPicker) {
+                    const selectedYear = parseInt(yearPicker.value);
+                    const selectedMonth = parseInt(e.target.value);
+                    updateDateDisplay(selectedYear, selectedMonth, 15); // 임시로 15일
+                    
+                    // 주간이 선택된 상태라면 주차 옵션 업데이트
+                    if (selectedRange === 'week') {
+                        generateWeekOptions(selectedYear, selectedMonth);
+                    }
+                }
+            });
+            
+            // 적용 버튼
+            document.getElementById('applyDateBtn')?.addEventListener('click', () => {
+                console.log('적용 버튼 클릭');
+                applySelectedDate(selectedRange);
+            });
+            
+            // 취소 버튼
+            document.getElementById('cancelDateBtn')?.addEventListener('click', () => {
+                console.log('취소 버튼 클릭');
+                const dropdown = document.getElementById('datePickerDropdown');
+                if (dropdown) {
+                    dropdown.classList.add('hidden');
+                }
+            });
+            
+            console.log('📅 클릭형 이벤트 리스너 설정 완료');
+        }
+        
+        // 범위 버튼 스타일 업데이트
+        function updateRangeButtonStyles(activeButtonId) {
+            const buttons = ['weekRangeBtn', 'monthRangeBtn', 'allRangeBtn'];
+            
+            buttons.forEach(buttonId => {
+                const button = document.getElementById(buttonId);
+                if (button) {
+                    if (buttonId === activeButtonId) {
+                        // 활성 상태
+                        button.classList.remove('bg-blue-500', 'bg-green-500', 'bg-purple-500');
+                        button.classList.add('bg-yellow-500', 'ring-2', 'ring-yellow-300');
+                    } else {
+                        // 비활성 상태
+                        button.classList.remove('bg-yellow-500', 'ring-2', 'ring-yellow-300');
+                        if (buttonId === 'weekRangeBtn') {
+                            button.classList.add('bg-blue-500');
+                        } else if (buttonId === 'monthRangeBtn') {
+                            button.classList.add('bg-green-500');
+                        } else {
+                            button.classList.add('bg-purple-500');
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 선택된 날짜 적용
+        function applySelectedDate(rangeType) {
+            const yearPicker = document.getElementById('yearPicker');
+            const monthPicker = document.getElementById('monthPicker');
+            
+            if (!yearPicker || !monthPicker) return;
+            
+            const selectedYear = parseInt(yearPicker.value);
+            const selectedMonth = parseInt(monthPicker.value);
+            
+            console.log('선택된 날짜 적용:', { selectedYear, selectedMonth, rangeType });
+            
+            // 날짜 표시 업데이트
+            updateDateDisplay(selectedYear, selectedMonth, 15); // 임시로 15일로 설정
+            
+            // 랭킹 기간 설정
+            if (rangeType === 'week') {
+                // 선택된 주차 정보 확인
+                if (window.selectedWeekInfo) {
+                    const weekInfo = window.selectedWeekInfo;
+                    currentRankingPeriod = `week:${weekInfo.start}:${weekInfo.end}`;
+                    document.getElementById('rankingPeriod').value = currentRankingPeriod;
+                    updateCurrentPeriodDisplay(`📅 ${weekInfo.year}년 ${weekInfo.month}월 ${weekInfo.weekNumber}째주`);
+                } else {
+                    alert('주차를 선택해주세요!');
+                    return;
+                }
+            } else if (rangeType === 'month') {
+                currentRankingPeriod = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
+                document.getElementById('rankingPeriod').value = currentRankingPeriod;
+                updateCurrentPeriodDisplay(`📅 ${selectedYear}년 ${selectedMonth}월`);
+            } else {
+                currentRankingPeriod = 'all';
+                document.getElementById('rankingPeriod').value = 'all';
+                updateCurrentPeriodDisplay('📅 전체기간');
+            }
+            
+            console.log('🔄 날짜 적용 완료:', { 
+                selectedYear, 
+                selectedMonth, 
+                rangeType, 
+                currentRankingPeriod 
+            });
+            
+            // 적용된 기간에 대한 활동 필터링 테스트
+            if (currentRankingPeriod !== 'all') {
+                testActivityFiltering(currentRankingPeriod);
+            }
+            
+            // 드롭다운 닫기
+            const dropdown = document.getElementById('datePickerDropdown');
+            if (dropdown) {
+                dropdown.classList.add('hidden');
+            }
+            
+            // 랭킹 업데이트
+            renderAttendanceRanking();
+        }
+        
+        // 커스텀 날짜 필터 적용
+        function applyCustomDateFilter() {
+            const year = parseInt(document.getElementById('yearSelect').value);
+            const month = parseInt(document.getElementById('monthSelect').value);
+            const periodType = document.getElementById('periodTypeSelect').value;
+            
+            if (!year || !month || !periodType) {
+                alert('년도, 월, 기간 타입을 모두 선택해주세요.');
+                return;
+            }
+            
+            let periodConfig = {};
+            let displayText = '';
+            
+            if (periodType === 'month') {
+                periodConfig = {
+                    type: 'custom_month',
+                    year: year,
+                    month: month
+                };
+                displayText = `📅 ${year}년 ${month}월`;
+            } else if (periodType === 'week' && window.selectedWeekRange) {
+                periodConfig = {
+                    type: 'custom_week',
+                    startDate: window.selectedWeekRange.startDate,
+                    endDate: window.selectedWeekRange.endDate
+                };
+                const startDate = new Date(window.selectedWeekRange.startDate);
+                const endDate = new Date(window.selectedWeekRange.endDate);
+                displayText = `📅 ${startDate.getMonth() + 1}/${startDate.getDate()} ~ ${endDate.getMonth() + 1}/${endDate.getDate()}`;
+            } else if (periodType === 'day' && window.selectedDayRange) {
+                periodConfig = {
+                    type: 'custom_day',
+                    date: window.selectedDayRange.date
+                };
+                const date = new Date(window.selectedDayRange.date);
+                displayText = `📅 ${date.getMonth() + 1}/${date.getDate()}`;
+            } else {
+                alert('기간을 선택해주세요.');
+                return;
+            }
+            
+            currentRankingPeriod = periodConfig;
+            updateCurrentPeriodDisplay(displayText);
+            updateRanking();
+        }
+        
+        // 전역 변수로 현재 랭킹 기간 저장 (기존 호환성)
+        let currentRankingPeriod = 'all';
+
+        // 출석 랭킹 계산 (새로운 날짜 선택 시스템 지원)
+        function calculateAttendanceRanking(periodConfig, rankingType = 'total') {
+            console.log('🔍 랭킹 계산 시작:', { periodConfig, rankingType, membersCount: members.length });
+            console.log('🔍 Activities 객체:', activities);
+            console.log('🔍 오늘 날짜:', new Date());
+            
+            const now = new Date();
+            let startDate, endDate;
+            
+            // periodConfig가 문자열인 경우 (기존 호환성)
+            if (typeof periodConfig === 'string') {
+                return calculateAttendanceRankingLegacy(periodConfig, rankingType);
+            }
+            
+            // 새로운 periodConfig 객체 처리
+            switch (periodConfig.type) {
                 case 'week':
-                    // 9월 7일(일요일) 기준: 9월 1일(월) ~ 9월 7일(일)
+                    // 이번주 (월요일 시작)
                     startDate = new Date(now);
                     const day = startDate.getDay();
                     
@@ -2391,6 +3492,100 @@
                         startDate.setDate(now.getDate() - 6);
                     } else {
                         // 다른 요일인 경우: (요일-1)일 전이 월요일
+                        startDate.setDate(now.getDate() - (day - 1));
+                    }
+                    startDate.setHours(0, 0, 0, 0);
+                    
+                    endDate = new Date(startDate);
+                    endDate.setDate(startDate.getDate() + 6);
+                    endDate.setHours(23, 59, 59, 999);
+                    break;
+                    
+                case 'next_week':
+                    // 다음주 (월요일 시작)
+                    startDate = new Date(now);
+                    const nextWeekDay = startDate.getDay();
+                    
+                    if (nextWeekDay === 0) {
+                        // 일요일인 경우: 1일 후가 다음주 월요일
+                        startDate.setDate(now.getDate() + 1);
+                    } else {
+                        // 다른 요일인 경우: (8-요일)일 후가 다음주 월요일
+                        startDate.setDate(now.getDate() + (8 - nextWeekDay));
+                    }
+                    startDate.setHours(0, 0, 0, 0);
+                    
+                    endDate = new Date(startDate);
+                    endDate.setDate(startDate.getDate() + 6);
+                    endDate.setHours(23, 59, 59, 999);
+                    break;
+                    
+                case 'month':
+                    // 이번달
+                    startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+                    startDate.setHours(0, 0, 0, 0);
+                    
+                    endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                    endDate.setHours(23, 59, 59, 999);
+                    break;
+                    
+                case 'custom_month':
+                    // 커스텀 월
+                    startDate = new Date(periodConfig.year, periodConfig.month - 1, 1);
+                    startDate.setHours(0, 0, 0, 0);
+                    
+                    endDate = new Date(periodConfig.year, periodConfig.month, 0);
+                    endDate.setHours(23, 59, 59, 999);
+                    
+                    console.log(`📅 커스텀 월 선택: ${periodConfig.year}년 ${periodConfig.month}월`);
+                    break;
+                    
+                case 'custom_week':
+                    // 커스텀 주 범위
+                    startDate = new Date(periodConfig.startDate);
+                    startDate.setHours(0, 0, 0, 0);
+                    
+                    endDate = new Date(periodConfig.endDate);
+                    endDate.setHours(23, 59, 59, 999);
+                    
+                    console.log(`📅 커스텀 주 선택: ${periodConfig.startDate} ~ ${periodConfig.endDate}`);
+                    break;
+                    
+                case 'custom_day':
+                    // 커스텀 일
+                    startDate = new Date(periodConfig.date);
+                    startDate.setHours(0, 0, 0, 0);
+                    
+                    endDate = new Date(periodConfig.date);
+                    endDate.setHours(23, 59, 59, 999);
+                    
+                    console.log(`📅 커스텀 일 선택: ${periodConfig.date}`);
+                    break;
+                    
+                case 'all':
+                default:
+                    // 전체 기간
+                    startDate = new Date(2025, 0, 1); // 2025년 1월 1일부터
+                    endDate = new Date(2025, 11, 31); // 2025년 12월 31일까지
+                    break;
+            }
+            
+            return calculateRankingWithDateRange(startDate, endDate, rankingType);
+        }
+        
+        // 기존 호환성을 위한 레거시 함수
+        function calculateAttendanceRankingLegacy(period, rankingType = 'total') {
+            const now = new Date();
+            let startDate, endDate;
+            
+            switch (period) {
+                case 'week':
+                    startDate = new Date(now);
+                    const day = startDate.getDay();
+                    
+                    if (day === 0) {
+                        startDate.setDate(now.getDate() - 6);
+                    } else {
                         startDate.setDate(now.getDate() - (day - 1));
                     }
                     startDate.setHours(0, 0, 0, 0);
@@ -2420,14 +3615,18 @@
                         console.log(`📅 특정 월 선택: ${year}년 ${month}월`);
                     } else {
                         // 전체 기간
-                        startDate = new Date(2025, 0, 1); // 2025년 1월 1일부터
-                        endDate = new Date(2025, 11, 31); // 2025년 12월 31일까지 (전체 연도)
+                        startDate = new Date(2025, 0, 1);
+                        endDate = new Date(2025, 11, 31);
                     }
                     break;
             }
             
+            return calculateRankingWithDateRange(startDate, endDate, rankingType);
+        }
+        
+        // 날짜 범위로 랭킹 계산
+        function calculateRankingWithDateRange(startDate, endDate, rankingType) {
             console.log('📅 계산 기간:', {
-                period,
                 startDate: startDate.toISOString(),
                 endDate: endDate.toISOString(),
                 formatStartDate: formatDate(startDate),
@@ -3522,12 +4721,36 @@
             updateAttendanceRates();
         }
 
-        // 랭킹 데이터 공유 기능
+        // 랭킹 데이터 공유 기능 (개선된 버전)
         function shareRankingData() {
+            console.log('📋 랭킹 공유 기능 시작');
+            
             const rankingContainer = document.getElementById('attendanceRanking');
-            const periodSelect = document.getElementById('rankingPeriod');
-            const currentTab = document.querySelector('.ranking-tab.active')?.textContent || '🏆 전체랭킹';
-            const selectedPeriod = periodSelect.options[periodSelect.selectedIndex].text;
+            const currentPeriodDisplay = document.getElementById('currentPeriodDisplay');
+            
+            // 현재 랭킹 타입 확인 (전역 변수 또는 탭에서)
+            let currentRankingType = 'total';
+            if (window.currentRankingType) {
+                currentRankingType = window.currentRankingType;
+            }
+            
+            // 랭킹 타입별 제목
+            const rankingTitles = {
+                'total': '🏆 종합랭킹',
+                'workout': '💪 운동랭킹', 
+                'meeting': '🤝 벙랭킹'
+            };
+            
+            const currentTitle = rankingTitles[currentRankingType] || '🏆 종합랭킹';
+            
+            // 현재 기간 정보 가져오기 (새로운 UI에서)
+            let periodText = '전체기간';
+            if (currentPeriodDisplay) {
+                const periodSpan = currentPeriodDisplay.querySelector('span');
+                if (periodSpan) {
+                    periodText = periodSpan.textContent.replace('📅 ', '');
+                }
+            }
             
             // 현재 표시된 랭킹 데이터 수집
             const rankingItems = rankingContainer.querySelectorAll('.ranking-item');
@@ -3537,17 +4760,73 @@
                 return;
             }
             
+            console.log(`📊 랭킹 아이템 수: ${rankingItems.length}개`);
+            
             // 텍스트 형태로 랭킹 정보 생성 (상위 5위까지만)
-            let shareText = `🏆 ${currentTab}\n`;
-            shareText += `📅 기간: ${selectedPeriod}\n\n`;
+            let shareText = `${currentTitle}\n`;
+            shareText += `📅 ${periodText}\n\n`;
             
             const maxRanks = Math.min(5, rankingItems.length); // 최대 5위까지만
             
             for (let i = 0; i < maxRanks; i++) {
                 const item = rankingItems[i];
                 const rank = i + 1;
-                const memberName = item.querySelector('.font-medium')?.textContent || '';
-                const statsText = item.querySelector('.text-xs')?.textContent || '';
+                
+                // 멤버 이름 추출 (여러 방법 시도)
+                let memberName = '';
+                
+                // 1차: font-semibold 클래스로 시도 (실제 HTML 구조에 맞춤)
+                const nameElement = item.querySelector('.font-semibold') || 
+                                 item.querySelector('.font-medium') || 
+                                 item.querySelector('.font-bold');
+                
+                if (nameElement) {
+                    memberName = nameElement.textContent.trim();
+                    console.log(`✅ 이름 추출 성공 (DOM): ${memberName}`);
+                } else {
+                    // 2차: 텍스트에서 직접 추출
+                    const allText = item.textContent.trim();
+                    console.log(`🔍 전체 텍스트:`, allText);
+                    
+                    const lines = allText.split('\n').map(line => line.trim()).filter(line => line);
+                    console.log(`📝 텍스트 라인들:`, lines);
+                    
+                    if (lines.length > 0) {
+                        // 첫 번째 줄에서 이름 부분만 추출 (메달 이모지나 숫자 제외)
+                        let firstLine = lines[0];
+                        // 메달 이모지와 숫자 제거
+                        memberName = firstLine.replace(/^[🥇🥈🥉0-9]+\s*/, '').trim();
+                        
+                        // 만약 여전히 비어있다면 두 번째 줄 시도
+                        if (!memberName && lines.length > 1) {
+                            memberName = lines[1].replace(/^[🥇🥈🥉0-9]+\s*/, '').trim();
+                        }
+                        
+                        console.log(`✅ 이름 추출 성공 (텍스트): ${memberName}`);
+                    }
+                }
+                
+                // 3차: 여전히 비어있다면 기본값 설정
+                if (!memberName) {
+                    memberName = `멤버${rank}`;
+                    console.warn(`⚠️ 이름 추출 실패, 기본값 사용: ${memberName}`);
+                }
+                
+                // 통계 정보 추출
+                let statsText = '';
+                const statsElement = item.querySelector('.text-xs') || 
+                                   item.querySelector('.text-sm');
+                
+                if (statsElement) {
+                    statsText = statsElement.textContent.trim();
+                } else {
+                    // 대체 방법: 텍스트에서 통계 추출
+                    const allText = item.textContent.trim();
+                    const match = allText.match(/(총 \d+회|[0-9]+%|\d+회)/);
+                    if (match) {
+                        statsText = match[0];
+                    }
+                }
                 
                 // 순위 이모지
                 let rankEmoji = '';
@@ -3556,11 +4835,13 @@
                 else if (rank === 3) rankEmoji = '🥉';
                 else rankEmoji = `${rank}위`;
                 
-                shareText += `${rankEmoji} ${memberName}\n`;
-                if (statsText) {
-                    shareText += `   ${statsText}\n`;
+                shareText += `${rankEmoji} ${memberName}`;
+                if (statsText && !statsText.includes('undefined') && statsText !== '') {
+                    shareText += ` - ${statsText}`;
                 }
                 shareText += '\n';
+                
+                console.log(`${rank}위: ${memberName} - ${statsText}`);
             }
             
             // 5위 이후 멤버가 있으면 안내 추가
@@ -3572,13 +4853,85 @@
             shareText += '💪 원주인증소통방 관리시스템\n';
             shareText += '🔗 함께 건강한 운동 습관을 만들어가요!';
             
+            console.log('📋 생성된 공유 텍스트:', shareText);
+            
             // 클립보드에 복사
             copyToClipboard(shareText).then(() => {
-                showMessage('📋 랭킹이 클립보드에 복사되었습니다!\n카톡에 붙여넣기 해주세요! 💬', 'success');
-                console.log('복사된 랭킹 텍스트:', shareText);
+                showMessage('📋 랭킹이 클립보드에 복사되었습니다!\n카카오톡에 붙여넣기 하세요! 💬', 'success');
+                console.log('✅ 복사 성공:', shareText);
+            }).catch(error => {
+                console.error('❌ 클립보드 복사 실패:', error);
+                
+                // 대체 방법: 텍스트 선택 가능한 모달 표시
+                showShareTextModal(shareText);
+            });
+        }
+        
+        // 공유 텍스트 모달 표시 (클립보드 복사 실패 시 대체)
+        function showShareTextModal(shareText) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4 max-h-[80vh] overflow-y-auto">
+                    <h3 class="text-lg font-bold mb-4 text-center">📋 랭킹 공유 텍스트</h3>
+                    <div class="mb-4">
+                        <textarea readonly class="w-full h-64 p-3 border rounded-lg text-sm resize-none font-mono" 
+                                  onclick="this.select()" 
+                                  style="line-height: 1.4;">${shareText}</textarea>
+                    </div>
+                    <div class="flex gap-2 mb-3">
+                        <button onclick="copyTextFromModal(this, '${shareText.replace(/'/g, "\\'")}'); event.stopPropagation();" 
+                                class="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                            📋 복사하기
+                        </button>
+                        <button onclick="this.closest('.fixed').remove(); event.stopPropagation();" 
+                                class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
+                            닫기
+                        </button>
+                    </div>
+                    <div class="text-xs text-gray-600 text-center space-y-1">
+                        <p>💡 텍스트를 클릭하면 전체 선택됩니다</p>
+                        <p>📱 모바일에서는 길게 눌러서 복사하세요</p>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // 모달 외부 클릭 시 닫기
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+            
+            // ESC 키로 닫기
+            const handleEsc = (e) => {
+                if (e.key === 'Escape') {
+                    modal.remove();
+                    document.removeEventListener('keydown', handleEsc);
+                }
+            };
+            document.addEventListener('keydown', handleEsc);
+        }
+        
+        // 모달에서 텍스트 복사하기
+        function copyTextFromModal(button, text) {
+            copyToClipboard(text).then(() => {
+                const originalText = button.textContent;
+                button.textContent = '✅ 복사됨!';
+                button.classList.remove('bg-blue-500', 'hover:bg-blue-600');
+                button.classList.add('bg-green-500', 'hover:bg-green-600');
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.classList.remove('bg-green-500', 'hover:bg-green-600');
+                    button.classList.add('bg-blue-500', 'hover:bg-blue-600');
+                }, 2000);
+                
+                showMessage('📋 클립보드에 복사되었습니다!', 'success');
             }).catch(() => {
-                console.log('📋 복사할 랭킹 텍스트:', shareText);
-                showMessage('📋 랭킹 텍스트를 콘솔에서 확인하여 복사해주세요!', 'info');
+                showMessage('❌ 복사에 실패했습니다. 텍스트를 직접 선택해서 복사해주세요.', 'error');
             });
         }
 
